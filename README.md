@@ -1,6 +1,6 @@
 ### Scripts and data for preliminary analyses of Whole genome sequence data of Stylophora pistillata Taxon1 corals from the Great Barrier Reef. ###
 
-## Scripts: ##
+## Scripts ##
 
 - OutlierAnalyses.R : R script to perform outlier analyses (OutFlank and PCAdapt) on whole dataset to find loci that are more differentiated than 'expected'.
   
@@ -12,3 +12,14 @@
 
 - correlation_coef.sh : Bash script running R script on HPC to calculate Kendall correlation coefficient between Mean Temperature and genotype matrix. This is an example for Offshore Central population, and will be ran on all populations.
 
+
+## Data ##
+
+- WGSpisTaxon1_Metadata.csv : metadata for all samples
+  
+- WGSpisTaxon1_OffshoreCentral_Metadata.csv : metadata for Offshore Central population samples only
+
+- env_data_Spis.csv : environemntal data (aquired from erref) for all samples
+
+- env_data_Spis_OC.csv : environemntal data (aquired from erref) for Offshore Central population samples only
+  
