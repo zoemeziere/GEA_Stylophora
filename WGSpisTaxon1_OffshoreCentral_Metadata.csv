@@ -1,0 +1,115 @@
+﻿Sample_names,Samples_renames,EcoClusterID,fieldID,tagID,healthChart,Population,timeOfDay,depthOfBottominMeters,decimalLatitude,decimalLongitude,EcoLocationID_short,EcoReefID,EcoSiteID,EcoZoneID,EcoPlotID,eventEnteredBy,dayCollected,monthCollected,yearCollected,dateCollected
+BLCH101A,BLCH101A,Offshore Central GBR,31,Spis_51,C2,OffshoreCentral,16:00:00,5,-18.8145,147.6372,OCDA_BA2S,Davies,Back 2,Shallow,1,Zoe Meziere,30,3,2022,30/3/2022
+BLCH105A,BLCH105A,Offshore Central GBR,40,Spis_37,D1,OffshoreCentral,11:30:00,5,-18.833,147.63338,OCDA_LA1S,Davies,Lagoon 1,Shallow,2,Zoe Meziere,31,3,2022,31/3/2022
+BLCH107A,BLCH107A,Offshore Central GBR,22,Spis_46,C2,OffshoreCentral,11:30:00,5,-18.833,147.63338,OCDA_LA1S,Davies,Lagoon 1,Shallow,4,Zoe Meziere,31,3,2022,31/3/2022
+BLCH108A,BLCH108A,Offshore Central GBR,7,Spis_0,C1,OffshoreCentral,15:00:00,5,-18.80575,147.6686,OCDA_FL1S,Davies,Flank 1,Shallow,1,Zoe Meziere,31,3,2022,31/3/2022
+BLCH109A,BLCH109A,Offshore Central GBR,18,Spis_10,D1,OffshoreCentral,15:00:00,5,-18.80575,147.6686,OCDA_FL1S,Davies,Flank 1,Shallow,1,Zoe Meziere,31,3,2022,31/3/2022
+BLCH10A,BLCH10A,Offshore Central GBR,18,Spis_17,C2,OffshoreCentral,14:30:00,5,-18.8259,147.62727,OCDA_BA1S,Davies,Back 1,Shallow,4,Zoe Meziere,28,3,2022,28/3/2022
+BLCH112A,BLCH112A,Offshore Central GBR,30,Spis_4,C3,OffshoreCentral,15:00:00,5,-18.80575,147.6686,OCDA_FL1S,Davies,Flank 1,Shallow,1,Zoe Meziere,31,3,2022,31/3/2022
+BLCH114A,BLCH114A,Offshore Central GBR,26,Spis_9,C2,OffshoreCentral,15:00:00,5,-18.80575,147.6686,OCDA_FL1S,Davies,Flank 1,Shallow,1,Zoe Meziere,31,3,2022,31/3/2022
+BLCH117A,BLCH117A,Offshore Central GBR,38,Spis_21,C3,OffshoreCentral,15:00:00,5,-18.80575,147.6686,OCDA_FL1S,Davies,Flank 1,Shallow,4,Zoe Meziere,31,3,2022,31/3/2022
+BLCH118A,BLCH118A,Offshore Central GBR,10,Spis_22,C2.5,OffshoreCentral,15:00:00,5,-18.80575,147.6686,OCDA_FL1S,Davies,Flank 1,Shallow,4,Zoe Meziere,31,3,2022,31/3/2022
+BLCH11A,BLCH11A,Offshore Central GBR,11,Spis_43,C1,OffshoreCentral,14:30:00,5,-18.8259,147.62727,OCDA_BA1S,Davies,Back 1,Shallow,4,Zoe Meziere,28,3,2022,28/3/2022
+BLCH120A,BLCH120A,Offshore Central GBR,5,Spis_20,C2,OffshoreCentral,15:00:00,5,-18.80575,147.6686,OCDA_FL1S,Davies,Flank 1,Shallow,4,Zoe Meziere,31,3,2022,31/3/2022
+BLCH121A,BLCH121A,Offshore Central GBR,31,Spis_19,C2,OffshoreCentral,15:00:00,5,-18.80575,147.6686,OCDA_FL1S,Davies,Flank 1,Shallow,4,Zoe Meziere,31,3,2022,31/3/2022
+BLCH122A,BLCH122A,Offshore Central GBR,22,Spis_23,C2,OffshoreCentral,15:00:00,5,-18.80575,147.6686,OCDA_FL1S,Davies,Flank 1,Shallow,4,Zoe Meziere,31,3,2022,31/3/2022
+BLCH145A,BLCH145A,Offshore Central GBR,1,Spis_9,C2,OffshoreCentral,10:30:00,5,-18.6532055,147.708533,OCCH_BA1S,Chicken,Back 1,Shallow,1,Zoe Meziere,1,4,2022,1/4/2022
+BLCH148A,BLCH148A,Offshore Central GBR,16,Spis_3,C2,OffshoreCentral,10:30:00,5,-18.6532055,147.708533,OCCH_BA1S,Chicken,Back 1,Shallow,2,Zoe Meziere,1,4,2022,1/4/2022
+BLCH151A,BLCH151A,Offshore Central GBR,17,Spis_8,C2,OffshoreCentral,10:30:00,5,-18.6532055,147.708533,OCCH_BA1S,Chicken,Back 1,Shallow,3,Zoe Meziere,1,4,2022,1/4/2022
+BLCH152A,BLCH152A,Offshore Central GBR,3,Spis_13,C2,OffshoreCentral,10:30:00,5,-18.6532055,147.708533,OCCH_BA1S,Chicken,Back 1,Shallow,3,Zoe Meziere,1,4,2022,1/4/2022
+BLCH154A,BLCH154A,Offshore Central GBR,33,Spis_11,C3,OffshoreCentral,10:30:00,5,-18.6532055,147.708533,OCCH_BA1S,Chicken,Back 1,Shallow,3,Zoe Meziere,1,4,2022,1/4/2022
+BLCH157A,BLCH157A,Offshore Central GBR,34,Spis_34,C2,OffshoreCentral,10:30:00,5,-18.6532055,147.708533,OCCH_BA1S,Chicken,Back 1,Shallow,4,Zoe Meziere,1,4,2022,1/4/2022
+BLCH16A,BLCH16A,Offshore Central GBR,5,Spis_8,C2,OffshoreCentral,14:30:00,3,-18.8259,147.62727,OCDA_BA1S,Davies,Back 1,Shallow,2,Zoe Meziere,28,3,2022,28/3/2022
+BLCH174A,BLCH174A,Offshore Central GBR,19,Spis_10,D1,OffshoreCentral,15:30:00,5,-18.6604,147.7027,OOCH_BA2S,Chicken,Back 2,Shallow,4,Zoe Meziere,1,4,2022,1/4/2022
+BLCH182A,BLCH182A,Offshore Central GBR,22,Spis_26,C2.5,OffshoreCentral,8:00:00,5,-18.944062,147.699285,OCLB_FL1S,Little Broadhurst,Flank 1,Shallow,1,Zoe Meziere,2,4,2022,2/4/2022
+BLCH184B,BLCH184B,Offshore Central GBR,36,Spis_30,D1.5,OffshoreCentral,11:00:00,5,-18.9493475,147.6929265,OCLB_BA1S,Little Broadhurst,Back 1,Shallow,1,Zoe Meziere,2,4,2022,2/4/2022
+BLCH190A,BLCH190A,Offshore Central GBR,5,Spis_30,D1,OffshoreCentral,8:00:00,5,-18.944062,147.699285,OCLB_FL1S,Little Broadhurst,Flank 1,Shallow,3,Zoe Meziere,2,4,2022,2/4/2022
+BLCH193B,BLCH193B,Offshore Central GBR,37,Spis_10,D1.5,OffshoreCentral,11:00:00,5,-18.9493475,147.6929265,OCLB_BA1S,Little Broadhurst,Back 1,Shallow,1,Zoe Meziere,2,4,2022,2/4/2022
+BLCH194B,BLCH194B,Offshore Central GBR,19,Spis_16,D1.5,OffshoreCentral,11:00:00,5,-18.9493475,147.6929265,OCLB_BA1S,Little Broadhurst,Back 1,Shallow,1,Zoe Meziere,2,4,2022,2/4/2022
+BLCH195B,BLCH195B,Offshore Central GBR,12,Spis_16,D1.5,OffshoreCentral,11:00:00,5,-18.9493475,147.6929265,OCLB_BA1S,Little Broadhurst,Back 1,Shallow,4,Zoe Meziere,2,4,2022,2/4/2022
+BLCH196B,BLCH196B,Offshore Central GBR,14,Spis_13,D3,OffshoreCentral,11:00:00,5,-18.9493475,147.6929265,OCLB_BA1S,Little Broadhurst,Back 1,Shallow,4,Zoe Meziere,2,4,2022,2/4/2022
+BLCH197B,BLCH197B,Offshore Central GBR,27,Spis_10,D1.5,OffshoreCentral,11:00:00,5,-18.9493475,147.6929265,OCLB_BA1S,Little Broadhurst,Back 1,Shallow,4,Zoe Meziere,2,4,2022,2/4/2022
+BLCH20A,BLCH20A,Offshore Central GBR,16,Spis_14,C1,OffshoreCentral,14:30:00,5,-18.8259,147.62727,OCDA_BA1S,Davies,Back 1,Shallow,3,Zoe Meziere,28,3,2022,28/3/2022
+BLCH22A,BLCH22A,Offshore Central GBR,16,Spis_15,C2,OffshoreCentral,16:30:00,5,-18.8192,147.66391,OCDA_FR1S,Davies,Front 1,Shallow,4,Zoe Meziere,28,3,2022,28/3/2022
+BLCH31A,BLCH31A,Offshore Central GBR,4,Spis_17,C2,OffshoreCentral,16:30:00,5,-18.8192,147.66391,OCDA_FR1S,Davies,Front 1,Shallow,3,Zoe Meziere,28,3,2022,28/3/2022
+BLCH32A,BLCH32A,Offshore Central GBR,7,Spis_15,C2,OffshoreCentral,16:30:00,5,-18.8192,147.66391,OCDA_FR1S,Davies,Front 1,Shallow,3,Zoe Meziere,28,3,2022,28/3/2022
+BLCH35A,BLCH35A,Offshore Central GBR,5,Spis_9,C2,OffshoreCentral,10:00:00,13,-18.81966,147.66394,OCDA_FR1D,Davies,Front 1,Deep,4,Zoe Meziere,29,3,2022,29/3/2022
+BLCH38A,BLCH38A,Offshore Central GBR,3,Spis_15,C1,OffshoreCentral,10:00:00,13,-18.81966,147.66394,OCDA_FR1D,Davies,Front 1,Deep,4,Zoe Meziere,29,3,2022,29/3/2022
+BLCH41A,BLCH41A,Offshore Central GBR,18,Spis_18,D1,OffshoreCentral,10:00:00,13,-18.81966,147.66394,OCDA_FR1D,Davies,Front 1,Deep,4,Zoe Meziere,29,3,2022,29/3/2022
+BLCH42A,BLCH42A,Offshore Central GBR,5,Spis_14,C4,OffshoreCentral,14:00:00,13,-18.80592,147.6688,OCDA_FL1D,Davies,Flank1,Deep,1,Zoe Meziere,29,3,2022,29/3/2022
+BLCH46A,BLCH46A,Offshore Central GBR,16,Spis_38,C2,OffshoreCentral,14:00:00,13,-18.80592,147.6688,OCDA_FL1D,Davies,Flank1,Deep,1,Zoe Meziere,29,3,2022,29/3/2022
+BLCH49A,BLCH49A,Offshore Central GBR,14,Spis_0,C4,OffshoreCentral,14:00:00,13,-18.80592,147.6688,OCDA_FL1D,Davies,Flank1,Deep,1,Zoe Meziere,29,3,2022,29/3/2022
+BLCH4A,BLCH4A,Offshore Central GBR,10,Spis_21,C2,OffshoreCentral,10:30:00,13,-18.82579,147.62735,OCDA_BA1D,Davies,Back 1,Deep,2,Zoe Meziere,28,3,2022,28/3/2022
+BLCH55A,BLCH55A,Offshore Central GBR,16,Spis_20,C2,OffshoreCentral,16:00:00,5,-18.8145,147.6372,OCDA_BA2S,Davies,Back 2,Shallow,1,Zoe Meziere,29,3,2022,29/3/2022
+BLCH56A,BLCH56A,Offshore Central GBR,5,Spis_19,C3,OffshoreCentral,16:00:00,5,-18.8145,147.6372,OCDA_BA2S,Davies,Back 2,Shallow,1,Zoe Meziere,29,3,2022,29/3/2022
+BLCH63A,BLCH63A,Offshore Central GBR,10,Spis_51,C2,OffshoreCentral,9:30:00,5,-18.83187,147.6525,OCDA_FR2S,Davies,Front 2,Shallow,1,Zoe Meziere,30,3,2022,30/3/2022
+BLCH78A,BLCH78A,Offshore Central GBR,5,Spis_14,C3.5,OffshoreCentral,9:30:00,5,-18.83187,147.6525,OCDA_FR2S,Davies,Front 2,Shallow,3,Zoe Meziere,30,3,2022,30/3/2022
+BLCH85A,BLCH85A,Offshore Central GBR,22,Spis_12,C2,OffshoreCentral,16:00:00,5,-18.8145,147.6372,OCDA_BA2S,Davies,Back 2,Shallow,1,Zoe Meziere,30,3,2022,30/3/2022
+BLCH86A,BLCH86A,Offshore Central GBR,14,Spis_10,C2,OffshoreCentral,16:00:00,5,-18.8145,147.6372,OCDA_BA2S,Davies,Back 2,Shallow,1,Zoe Meziere,30,3,2022,30/3/2022
+BLCH87A,BLCH87A,Offshore Central GBR,32,Spis_11,D3,OffshoreCentral,16:00:00,5,-18.8145,147.6372,OCDA_BA2S,Davies,Back 2,Shallow,1,Zoe Meziere,30,3,2022,30/3/2022
+BLCH91A,BLCH91A,Offshore Central GBR,33,Spis_24,C2,OffshoreCentral,16:00:00,5,-18.8145,147.6372,OCDA_BA2S,Davies,Back 2,Shallow,1,Zoe Meziere,30,3,2022,30/3/2022
+BLCH93A,BLCH93A,Offshore Central GBR,21,Spis_27,C2,OffshoreCentral,16:00:00,5,-18.8145,147.6372,OCDA_BA2S,Davies,Back 2,Shallow,1,Zoe Meziere,30,3,2022,30/3/2022
+BLCH99A,BLCH99A,Offshore Central GBR,20,Spis_27,C2,OffshoreCentral,16:00:00,5,-18.8145,147.6372,OCDA_BA2S,Davies,Back 2,Shallow,1,Zoe Meziere,30,3,2022,30/3/2022
+BLCH9A,BLCH9A,Offshore Central GBR,3,Spis_34,C2,OffshoreCentral,14:30:00,5,-18.8259,147.62727,OCDA_BA1S,Davies,Back 1,Shallow,4,Zoe Meziere,28,3,2022,28/3/2022
+Spis_OCCH_628,Spis_OCCH_628,Offshore Central GBR,9,0,0,OffshoreCentral,9:00:00,5,-18.660365,147.702675,OCCH_BA2S,Chicken,Back2,Shallow,0,Zoe Meziere,17,1,2022,17/1/2022
+Spis_OCCH_629,Spis_OCCH_629,Offshore Central GBR,4,0,0,OffshoreCentral,9:00:00,5,-18.660365,147.702675,OCCH_BA2S,Chicken,Back2,Shallow,0,Zoe Meziere,17,1,2022,17/1/2022
+Spis_OCCH_634,Spis_OCCH_634,Offshore Central GBR,8,0,0,OffshoreCentral,9:00:00,5,-18.660365,147.702675,OCCH_BA2S,Chicken,Back2,Shallow,0,Zoe Meziere,17,1,2022,17/1/2022
+Spis_OCCH_655,Spis_OCCH_655,Offshore Central GBR,4,0,0,OffshoreCentral,9:00:00,6,-18.6532055,147.708533,OCCH_BA1S,Chicken,Back1,Shallow,0,Zoe Meziere,18,1,2022,18/1/2022
+Spis_OCCH_659,Spis_OCCH_659,Offshore Central GBR,15,0,0,OffshoreCentral,9:00:00,6,-18.6532055,147.708533,OCCH_BA1S,Chicken,Back1,Shallow,0,Zoe Meziere,18,1,2022,18/1/2022
+Spis_OCCH_668,Spis_OCCH_668,Offshore Central GBR,10,0,0,OffshoreCentral,9:00:00,6,-18.6532055,147.708533,OCCH_BA1S,Chicken,Back1,Shallow,0,Zoe Meziere,18,1,2022,18/1/2022
+Spis_OCDA_570,Spis_OCDA_570,Offshore Central GBR,12,0,0,OffshoreCentral,15:00:00,13,-18.83191,147.65257,OCDA_FR2D,Davies,Front2,Deep,0,Zoe Meziere,15,1,2022,15/1/2022
+Spis_OCDA_573,Spis_OCDA_573,Offshore Central GBR,3,0,0,OffshoreCentral,15:00:00,13,-18.83191,147.65257,OCDA_FR2D,Davies,Front2,Deep,0,Zoe Meziere,15,1,2022,15/1/2022
+Spis_OCDA_576,Spis_OCDA_576,Offshore Central GBR,1,0,0,OffshoreCentral,15:00:00,13,-18.83191,147.65257,OCDA_FR2D,Davies,Front2,Deep,0,Zoe Meziere,15,1,2022,15/1/2022
+Spis_OCDA_577,Spis_OCDA_577,Offshore Central GBR,13,0,0,OffshoreCentral,15:00:00,13,-18.83191,147.65257,OCDA_FR2D,Davies,Front2,Deep,0,Zoe Meziere,15,1,2022,15/1/2022
+Spis_OCDA_579,Spis_OCDA_579,Offshore Central GBR,15,0,0,OffshoreCentral,15:00:00,13,-18.83191,147.65257,OCDA_FR2D,Davies,Front2,Deep,0,Zoe Meziere,15,1,2022,15/1/2022
+Spis_OCDA_581,Spis_OCDA_581,Offshore Central GBR,14,0,0,OffshoreCentral,15:00:00,13,-18.83191,147.65257,OCDA_FR2D,Davies,Front2,Deep,0,Zoe Meziere,15,1,2022,15/1/2022
+Spis_OCDA_582,Spis_OCDA_582,Offshore Central GBR,7,0,0,OffshoreCentral,15:00:00,13,-18.83191,147.65257,OCDA_FR2D,Davies,Front2,Deep,0,Zoe Meziere,15,1,2022,15/1/2022
+Spis_OCDA_588,Spis_OCDA_588,Offshore Central GBR,1,0,0,OffshoreCentral,9:00:00,5,-18.83187,147.6525,OCDA_FR2S,Davies,Front2,Shallow,0,Zoe Meziere,15,1,2022,15/1/2022
+Spis_OCDA_589,Spis_OCDA_589,Offshore Central GBR,2,0,0,OffshoreCentral,9:00:00,5,-18.83187,147.6525,OCDA_FR2S,Davies,Front2,Shallow,0,Zoe Meziere,15,1,2022,15/1/2022
+Spis_OCDA_593,Spis_OCDA_593,Offshore Central GBR,11,0,0,OffshoreCentral,9:00:00,5,-18.83187,147.6525,OCDA_FR2S,Davies,Front2,Shallow,0,Zoe Meziere,15,1,2022,15/1/2022
+Spis_OCDA_594,Spis_OCDA_594,Offshore Central GBR,4,0,0,OffshoreCentral,9:00:00,5,-18.83187,147.6525,OCDA_FR2S,Davies,Front2,Shallow,0,Zoe Meziere,15,1,2022,15/1/2022
+Spis_OCDA_595,Spis_OCDA_595,Offshore Central GBR,14,0,0,OffshoreCentral,9:00:00,5,-18.83187,147.6525,OCDA_FR2S,Davies,Front2,Shallow,0,Zoe Meziere,15,1,2022,15/1/2022
+Spis_OCDA_600,Spis_OCDA_600,Offshore Central GBR,11,0,0,OffshoreCentral,15:00:00,14,-18.81966,147.66394,OCDA_FR1D,Davies,Front1,Deep,0,Zoe Meziere,16,1,2022,16/1/2022
+Spis_OCDA_601,Spis_OCDA_601,Offshore Central GBR,10,0,0,OffshoreCentral,15:00:00,14,-18.81966,147.66394,OCDA_FR1D,Davies,Front1,Deep,0,Zoe Meziere,16,1,2022,16/1/2022
+Spis_OCDA_602,Spis_OCDA_602,Offshore Central GBR,15,0,0,OffshoreCentral,15:00:00,14,-18.81966,147.66394,OCDA_FR1D,Davies,Front1,Deep,0,Zoe Meziere,16,1,2022,16/1/2022
+Spis_OCDA_603,Spis_OCDA_603,Offshore Central GBR,12,0,0,OffshoreCentral,15:00:00,14,-18.81966,147.66394,OCDA_FR1D,Davies,Front1,Deep,0,Zoe Meziere,16,1,2022,16/1/2022
+Spis_OCDA_613,Spis_OCDA_613,Offshore Central GBR,9,0,0,OffshoreCentral,9:00:00,6,-18.8192,147.66391,OCDA_FR1S,Davies,Front1,Shallow,0,Zoe Meziere,16,1,2022,16/1/2022
+Spis_OCDA_670,Spis_OCDA_670,Offshore Central GBR,5,0,0,OffshoreCentral,16:00:00,15,-18.80592,147.6688,OCDA_FL1D,Davies,Flank1,Deep,0,Zoe Meziere,19,1,2022,19/1/2022
+Spis_OCDA_672,Spis_OCDA_672,Offshore Central GBR,1,0,0,OffshoreCentral,16:00:00,15,-18.80592,147.6688,OCDA_FL1D,Davies,Flank1,Deep,0,Zoe Meziere,19,1,2022,19/1/2022
+Spis_OCDA_675,Spis_OCDA_675,Offshore Central GBR,6,0,0,OffshoreCentral,16:00:00,15,-18.80592,147.6688,OCDA_FL1D,Davies,Flank1,Deep,0,Zoe Meziere,19,1,2022,19/1/2022
+Spis_OCDA_677,Spis_OCDA_677,Offshore Central GBR,11,0,0,OffshoreCentral,16:00:00,15,-18.80592,147.6688,OCDA_FL1D,Davies,Flank1,Deep,0,Zoe Meziere,19,1,2022,19/1/2022
+Spis_OCDA_679,Spis_OCDA_679,Offshore Central GBR,9,0,0,OffshoreCentral,16:00:00,15,-18.80592,147.6688,OCDA_FL1D,Davies,Flank1,Deep,0,Zoe Meziere,19,1,2022,19/1/2022
+Spis_OCDA_683,Spis_OCDA_683,Offshore Central GBR,1,0,0,OffshoreCentral,9:00:00,5,-18.80575,147.6686,OCDA_FL1S,Davies,Flank1,Shallow,0,Zoe Meziere,20,1,2022,20/1/2022
+Spis_OCDA_691,Spis_OCDA_691,Offshore Central GBR,12,0,0,OffshoreCentral,9:00:00,5,-18.80575,147.6686,OCDA_FL1S,Davies,Flank1,Shallow,0,Zoe Meziere,20,1,2022,20/1/2022
+Spis_OCDA_740,Spis_OCDA_740,Offshore Central GBR,4,0,0,OffshoreCentral,9:00:00,5,-18.833,147.63338,OCDA_LA1S,Davies,Lagoon1,Shallow,0,Zoe Meziere,22,1,2022,22/1/2022
+Spis_OCDA_742,Spis_OCDA_742,Offshore Central GBR,21,0,0,OffshoreCentral,9:00:00,5,-18.833,147.63338,OCDA_LA1S,Davies,Lagoon1,Shallow,0,Zoe Meziere,22,1,2022,22/1/2022
+Spis_OCDA_743,Spis_OCDA_743,Offshore Central GBR,20,0,0,OffshoreCentral,9:00:00,5,-18.833,147.63338,OCDA_LA1S,Davies,Lagoon1,Shallow,0,Zoe Meziere,22,1,2022,22/1/2022
+Spis_OCDA_746,Spis_OCDA_746,Offshore Central GBR,2,0,0,OffshoreCentral,9:00:00,5,-18.833,147.63338,OCDA_LA1S,Davies,Lagoon1,Shallow,0,Zoe Meziere,22,1,2022,22/1/2022
+Spis_OCDA_748,Spis_OCDA_748,Offshore Central GBR,10,0,0,OffshoreCentral,9:00:00,5,-18.833,147.63338,OCDA_LA1S,Davies,Lagoon1,Shallow,0,Zoe Meziere,22,1,2022,22/1/2022
+Spis_OCDA_749,Spis_OCDA_749,Offshore Central GBR,22,0,0,OffshoreCentral,9:00:00,5,-18.833,147.63338,OCDA_LA1S,Davies,Lagoon1,Shallow,0,Zoe Meziere,22,1,2022,22/1/2022
+Spis_OCDA_752,Spis_OCDA_752,Offshore Central GBR,18,0,0,OffshoreCentral,9:00:00,5,-18.833,147.63338,OCDA_LA1S,Davies,Lagoon1,Shallow,0,Zoe Meziere,22,1,2022,22/1/2022
+Spis_OCDA_755,Spis_OCDA_755,Offshore Central GBR,13,0,0,OffshoreCentral,9:00:00,5,-18.833,147.63338,OCDA_LA1S,Davies,Lagoon1,Shallow,0,Zoe Meziere,22,1,2022,22/1/2022
+Spis_OCDA_757,Spis_OCDA_757,Offshore Central GBR,17,0,0,OffshoreCentral,9:00:00,5,-18.833,147.63338,OCDA_LA1S,Davies,Lagoon1,Shallow,0,Zoe Meziere,22,1,2022,22/1/2022
+Spis_OCDA_758,Spis_OCDA_758,Offshore Central GBR,6,0,0,OffshoreCentral,9:00:00,5,-18.833,147.63338,OCDA_LA1S,Davies,Lagoon1,Shallow,0,Zoe Meziere,22,1,2022,22/1/2022
+Spis_OCDA_760,Spis_OCDA_760,Offshore Central GBR,20,0,0,OffshoreCentral,14:30:00,5,-18.83125,147.63316,OCDA_LA2S,Davies,Lagoon2,Shallow,0,Zoe Meziere,22,1,2022,22/1/2022
+Spis_OCDA_762,Spis_OCDA_762,Offshore Central GBR,12,0,0,OffshoreCentral,14:30:00,5,-18.83125,147.63316,OCDA_LA2S,Davies,Lagoon2,Shallow,0,Zoe Meziere,22,1,2022,22/1/2022
+Spis_OCDA_763,Spis_OCDA_763,Offshore Central GBR,2,0,0,OffshoreCentral,14:30:00,5,-18.83125,147.63316,OCDA_LA2S,Davies,Lagoon2,Shallow,0,Zoe Meziere,22,1,2022,22/1/2022
+Spis_OCDA_768,Spis_OCDA_768,Offshore Central GBR,24,0,0,OffshoreCentral,14:30:00,5,-18.83125,147.63316,OCDA_LA2S,Davies,Lagoon2,Shallow,0,Zoe Meziere,22,1,2022,22/1/2022
+Spis_OCDA_770,Spis_OCDA_770,Offshore Central GBR,4,0,0,OffshoreCentral,10:30:00,14,-18.82579,147.62735,OCDA_BA1D,Davies,Back1,Deep,0,Zoe Meziere,23,1,2022,23/1/2022
+Spis_OCDA_776,Spis_OCDA_776,Offshore Central GBR,5,0,0,OffshoreCentral,10:30:00,14,-18.82579,147.62735,OCDA_BA1D,Davies,Back1,Deep,0,Zoe Meziere,23,1,2022,23/1/2022
+Spis_OCDA_779,Spis_OCDA_779,Offshore Central GBR,21,0,0,OffshoreCentral,15:00:00,5,-18.8259,147.62727,OCDA_BA1S,Davies,Back1,Shallow,0,Zoe Meziere,23,1,2022,23/1/2022
+Spis_OCDA_781,Spis_OCDA_781,Offshore Central GBR,3,0,0,OffshoreCentral,15:00:00,5,-18.8259,147.62727,OCDA_BA1S,Davies,Back1,Shallow,0,Zoe Meziere,23,1,2022,23/1/2022
+Spis_OCDA_784,Spis_OCDA_784,Offshore Central GBR,7,0,0,OffshoreCentral,15:00:00,5,-18.8259,147.62727,OCDA_BA1S,Davies,Back1,Shallow,0,Zoe Meziere,23,1,2022,23/1/2022
+Spis_OCDA_788,Spis_OCDA_788,Offshore Central GBR,22,0,0,OffshoreCentral,15:00:00,5,-18.8259,147.62727,OCDA_BA1S,Davies,Back1,Shallow,0,Zoe Meziere,23,1,2022,23/1/2022
+Spis_OCLB_697,Spis_OCLB_697,Offshore Central GBR,8,0,0,OffshoreCentral,16:00:00,5,-18.9493475,147.6929265,OCLB_BA1S,Little Broadhurst,Back1,Shallow,0,Zoe Meziere,20,1,2022,20/1/2022
+Spis_OCLB_701,Spis_OCLB_701,Offshore Central GBR,10,0,0,OffshoreCentral,16:00:00,5,-18.9493475,147.6929265,OCLB_BA1S,Little Broadhurst,Back1,Shallow,0,Zoe Meziere,20,1,2022,20/1/2022
+Spis_OCLB_711,Spis_OCLB_711,Offshore Central GBR,1,0,0,OffshoreCentral,10:00:00,5,-18.944062,147.699285,OCLB_FL1S,Little Broadhurst,Flank1,Shallow,0,Zoe Meziere,21,1,2022,21/1/2022
+Spis_OCLB_717,Spis_OCLB_717,Offshore Central GBR,11,0,0,OffshoreCentral,10:00:00,5,-18.944062,147.699285,OCLB_FL1S,Little Broadhurst,Flank1,Shallow,0,Zoe Meziere,21,1,2022,21/1/2022
+Spis_OCLB_720,Spis_OCLB_720,Offshore Central GBR,9,0,0,OffshoreCentral,10:00:00,5,-18.944062,147.699285,OCLB_FL1S,Little Broadhurst,Flank1,Shallow,0,Zoe Meziere,21,1,2022,21/1/2022
+Spis_OCLB_724,Spis_OCLB_724,Offshore Central GBR,14,0,0,OffshoreCentral,10:00:00,5,-18.944062,147.699285,OCLB_FL1S,Little Broadhurst,Flank1,Shallow,0,Zoe Meziere,21,1,2022,21/1/2022
+Spis_OCLB_725,Spis_OCLB_725,Offshore Central GBR,5,0,0,OffshoreCentral,15:00:00,5,-18.949382,147.701909,OCLB_LA1S,Little Broadhurst,Lagoon1,Shallow,0,Zoe Meziere,21,1,2022,21/1/2022
+Spis_OCLB_728,Spis_OCLB_728,Offshore Central GBR,4,0,0,OffshoreCentral,15:00:00,5,-18.949382,147.701909,OCLB_LA1S,Little Broadhurst,Lagoon1,Shallow,0,Zoe Meziere,21,1,2022,21/1/2022
+Spis_OCLB_731,Spis_OCLB_731,Offshore Central GBR,12,0,0,OffshoreCentral,15:00:00,5,-18.949382,147.701909,OCLB_LA1S,Little Broadhurst,Lagoon1,Shallow,0,Zoe Meziere,21,1,2022,21/1/2022
+Spis_OCLB_734,Spis_OCLB_734,Offshore Central GBR,10,0,0,OffshoreCentral,15:00:00,5,-18.949382,147.701909,OCLB_LA1S,Little Broadhurst,Lagoon1,Shallow,0,Zoe Meziere,21,1,2022,21/1/2022
+Spis_OCLB_738,Spis_OCLB_738,Offshore Central GBR,11,0,0,OffshoreCentral,19:00:00,5,-18.949382,147.701909,OCLB_LA1S,Little Broadhurst,Lagoon1,Shallow,0,Zoe Meziere,21,1,2022,21/1/2022
+Spis_OCLB_739,Spis_OCLB_739,Offshore Central GBR,6,0,0,OffshoreCentral,20:00:00,5,-18.949382,147.701909,OCLB_LA1S,Little Broadhurst,Lagoon1,Shallow,0,Zoe Meziere,21,1,2022,21/1/2022
