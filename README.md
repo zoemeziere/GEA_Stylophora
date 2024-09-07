@@ -1,6 +1,6 @@
-##Scripts and data for preliminary analyses of Whole genome sequence data of Stylophora pistillata Taxon1 corals from the Great Barrier Reef.##
+### Scripts and data for preliminary analyses of Whole genome sequence data of Stylophora pistillata Taxon1 corals from the Great Barrier Reef. ###
 
-#Scripts:#
+## Scripts: ##
 
 - OutlierAnalyses.R : R script to perform outlier analyses (OutFlank and PCAdapt) on whole dataset to find loci that are more differentiated than 'expected'.
   
