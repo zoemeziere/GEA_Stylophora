@@ -15,68 +15,38 @@ module load r/4.2.1-foss-2022a
 
 VCF_FILE="/scratch/project_mnt/S0078/WGS_Stylophora_Taxon1/filtering_vcftools/04_populations/no_missing_data/Spis_ind_OffshoreCentral_nomissingdata.vcf"            # Path to VCF file
 ENV_FILE="/scratch/project_mnt/S0078/WGS_Stylophora_Taxon1/correlation_coefficients/env_data/env_data_OffshoreCentral.csv"             # Path to environmental data CSV
-OUTPUT_FILE="/scratch/project_mnt/S0078/WGS_Stylophora_Taxon1/correlation_coefficients/results/correlation_results.csv"		 # Output file for results
 
 # Run the R script
 Rscript - <<EOF
 
-# Function to install missing packages
-install_if_missing <- function(packages) {
-  missing <- packages[!(packages %in% installed.packages()[,"Package"])]
-  if(length(missing)) install.packages(missing, repos = "http://cran.us.r-project.org") }
-
-# Specify the required packages
-required_packages <- c("vcfR", "foreach", "doParallel")
-
-# Install missing packages
-install_if_missing(required_packages)
-
-# Load necessary libraries
 library(vcfR)
 library(foreach)
-library(doParallel)
-cat("Packages checked and installed.\n")
-flush.console()
 
-# Set number of cores for parallel processing
-numCores <- as.integer(Sys.getenv('SLURM_CPUS_ON_NODE', '1')) # Get number of cores from the SLURM job
+# Make a little wrapper function for cor.test to return the summary stat and the p-value as a vector
+cor_test_wrapper <- function(p_vec, env_vector) {
+  # Check if either vector has zero variance
+  if (sd(p_vec) == 0 || sd(env_vector) == 0) {
+    return(c(NA, NA))  # Return NA for both estimate and p-value
+  } else {
+    # Perform the correlation test
+    correlation_result <- cor.test(p_vec, env_vector, method = "kendall", exact = FALSE)
+    return(c(correlation_result$estimate, correlation_result$p.value))
+  }}
 
-# Load the VCF file and extract genotype data
+# VCF to dataframe
 vcf <- read.vcfR("$VCF_FILE")
-cat("VCF loaded and genotype data extracted.\n")
-flush.console()
-
 geno <- extract.gt(vcf, element = "GT", as.numeric = TRUE)
-geno <- t(geno)
-cat("Genotype matrix transposed.\n")
-flush.console()
 
 # Load the environmental data
-env_data <- read.csv("$ENV_FILE")
+env_data <- read.csv("$ENV_FILE", header=F)
 
-# Initialize parallel processing
-cl <- makeCluster(numCores)
-registerDoParallel(cl)
+# Use the apply function to use the wrapper function on each line of the DF - this step takes a while...
+cor_results <- apply(geno, 1, function(x) cor_test_wrapper(x, env_data[,12]))
 
-# Function to calculate both correlation and p-value
-get_cor_pvalue <- function(x, y) {
-  correlation_result <- cor.test(x, y, method = "kendall", exact = F)
-  return(c(correlation_result$estimate, correlation_result$'p.val')) }
+# transpose the result and store as a dataframe
+cor_results <- as.data.frame(t(cor_results))
 
-# Calculate correlation coefficients and p-values for each SNP with the environmental variable
-cor_results <- foreach(i = 1:ncol(geno), .combine = 'rbind') %dopar% {
-  get_cor_pvalue(geno[, i], env_data[,12]) }
-cat("Correlation calculations complete.\n")
-flush.console()
-
-# Stop the cluster after the calculations
-stopCluster(cl)
-
-# Save results to a CSV file
-cor_results <- as.data.frame(cor_results)
-names(cor_results) <- c("Kendall", "p_val")
-write.csv(cor_results, file = "$OUTPUT_FILE")
+# save file
+write.csv(cor_results, "/scratch/project_mnt/S0078/WGS_Stylophora_Taxon1/correlation_coefficients/cor_results")
 
 EOF
-
-echo "Correlation calculation completed. Results saved to $OUTPUT_FILE"
