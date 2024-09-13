@@ -25,4 +25,11 @@
 ## Env_Data ##
 
 Environemntal data (aquired from erref) for the whole dataset as well as for each popualtion.
+
+## VCFs_shuf ##
+
+VCF files for each popualations dowsampled to 100,000 randomly selected SNPs (out for ~ 5.7 million). No missing data.
+WARNINGS: 
+1) Not the same 100,000 randomly selected SNPs for each popualation - so I dont expect to find any strong signals - this is just to play around with and get the scripts working.
+2) Could not upload the VCF file for the OffshoreCentral popualtiona as it is too large.
   
