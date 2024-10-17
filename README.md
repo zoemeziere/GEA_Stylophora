@@ -1,6 +1,6 @@
 # Scripts and data for preliminary analyses of whole genome sequence data of Stylophora pistillata Taxon1 corals from the Great Barrier Reef #
 
-First, we ran GEA analyses for each population (5 populations) separately - bellow are scripts used for the CentralOffshore population: 
+First, we ran GEA analyses for each population (5 populations) separately - bellow are scripts used for the Heron population: 
 
     * 01_AlleleFreqMatrix.sh - script to get allele frequencies (sampling site level) from individual genotypes
 
