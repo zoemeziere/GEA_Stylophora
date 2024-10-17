@@ -8,7 +8,7 @@ First, we ran GEA analyses for each population (5 populations) separately - bell
 
     * 03_WZA.sh - script used to apply WZA method from correlation results in genomic windows of 10kb
 
-  These are the data file needed to run the above scripts only need:
+These are the data file needed to run the above scripts only need:
 
     * site_env_data_Heron.csv - Environmental data for each sampling sites for GEA
 
@@ -30,8 +30,24 @@ From the above scripts, we obtained the following intermediate data files:
 
 Then, we used the PicMin method to evalute repeatability of association signals across all 5 popualtions:
 
-    * 04_PicMin.sh - script used to run PicMin
+      04_PicMin.sh - script used to run PicMin
+
+These are the iput files (WZA results) for PicMin:
+
+      * CentralOffshore_WZA_df.rds
+      
+      * Heron_WZA_df.rds
+      
+      * Lizard_WZA_df.rds
+      
+      * Moore_WZA_df.rds
+      
+      * Pelorus_WZA_df.rds
 
 The output of the PicMin anlalysis is: 
 
-    * picMin_results.rds
+      picMin_results.rds
+
+Note: 10kb genomic windows were created using the following script:
+
+      create_windows.sh
