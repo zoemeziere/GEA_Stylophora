@@ -22,7 +22,7 @@ From the above scripts, we obtained the following intermediate data files:
 
     * af_mat.rds - allele frequency data (not included here, too large!)
 
-    * site_allele_frqs.rds - allele frequency data (not included here, too large!)
+    * site_allele_frqs.rds - intermediate allele frequency file (not included here, too large!)
 
     * cor_results.rds - correlation results
 
