@@ -46,12 +46,6 @@ These are the iput files (WZA results) for PicMin:
       
       * Pelorus_WZA_df.rds
 
-## 2 - RDA analyses to investigate global-scale patterns of nultivariate environmental adaptationin ##
-
-## 3 - Gradient Forest analyses to investigate global-scale patterns of nultivariate environmental adaptationin ##
-
-
-
 The output of the PicMin anlalysis is: 
 
       picMin_results.rds
@@ -59,3 +53,8 @@ The output of the PicMin anlalysis is:
 Note: 10kb genomic windows were created using the following script:
 
       create_windows.sh
+
+## 2 - RDA analyses to investigate global-scale patterns of nultivariate environmental adaptationin ##
+
+## 3 - Gradient Forest analyses to investigate global-scale patterns of nultivariate environmental adaptationin ##
+
