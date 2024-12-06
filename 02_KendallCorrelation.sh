@@ -28,6 +28,10 @@ env_mat <- read.csv("site_env_data_Heron.csv", header=TRUE)
 env_mat <- as.data.frame(env_mat)
 af_mat <- readRDS("af_mat.rds")
 
+# Reorder columns in env_mat to match rows in af_mat (populations)
+env_mat[, 1] <- env_mat[match(rownames(af_mat), env_mat[, 1]), 1]
+identical(env_mat[, 1], rownames(af_mat))
+
 # Make wrapper function for cor.test to return the summary stat and the p-value as a vector
 cor_test_wrapper <- function(p_vec, env_vector){
   correlation_result <- cor.test(p_vec, env_vector, method = "kendall", exact = F)
