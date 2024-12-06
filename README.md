@@ -2,57 +2,38 @@
 
 ## 1 - Repeatability of genomic architecture of local thermal adaptationa cross isolated populations ##
 
-First, we ran GEA analyses for each population (5 populations) separately - bellow are scripts used for the Heron population: 
+First, we ran GEA analyses for each population (5 populations) separately as well as on the whole dataset: 
 
+    * 00_create_windows.sh - script to create 10kb non overlapping genomic windows across all scaffolds
+    
     * 01_AlleleFreqMatrix.sh - script to get allele frequencies (sampling site level) from individual genotypes
-
+    
     * 02_KendallCorrelation.sh - script to calculate Kendall Tau correlation coefficients between allele frequencies and mean temperature for each sampling site
-
+    
     * 03_WZA.sh - script used to apply WZA method from correlation results in genomic windows of 10kb
 
-These are the data file needed to run the above scripts:
+The above script need the following input files: 
 
-    * site_env_data_Heron.csv - Environmental data for each sampling sites for GEA
+    * A dataframe of site-level temperature data - can be found in PopEnvData folder
 
-    * Heron_Metadata.csv - Metadata to sort individuals by sampling sites to calculate allele frequencies
+    * A dataframe assigning individuals to their sampling site to calculate allele frequencies - can be found in PopMetadata folder, 
 
     * snp_windows.txt - file containin SNP information (scaffold and position) and windowID (10kb windows)(not included here, too large!)
 
-    * Spis_ind_Heron_filtered.vcf - VCF file of all individuals (not included here, too large!)
+    * A VCF file - not included here, too large!
 
 From the above scripts, we obtained the following intermediate data files:
 
-    * af_mat.rds - allele frequency data (not included here, too large!)
+    * An allele frequency data dataframe - not included here, too large!
 
-    * site_allele_frqs.rds - intermediate allele frequency file (not included here, too large!)
+    * A dataframe of Kendall Tau correlations betwen allele frequencies and temperature data - can be found in correlation_results folder
 
-    * cor_results.rds - correlation results
-
-    * WZA_df.rds - WZA results
+    * A dataframe for WZA results - can be found in WZA_results folder
 
 Then, we used the PicMin method to evalute repeatability of association signals across all 5 popualtions:
 
-      04_PicMin.sh - script used to run PicMin
-
-These are the iput files (WZA results) for PicMin:
-
-      * CentralOffshore_WZA_df.rds
-      
-      * Heron_WZA_df.rds
-      
-      * Lizard_WZA_df.rds
-      
-      * Moore_WZA_df.rds
-      
-      * Pelorus_WZA_df.rds
-
-The output of the PicMin anlalysis is: 
-
-      picMin_results.rds
-
-Note: 10kb genomic windows were created using the following script:
-
-      create_windows.sh
+    * 04_PicMin.sh - script used to run PicMin across all 5 populations
+    * PicMin_results.rds - dataframe of PicMin results
 
 ## 2 - RDA analyses to investigate global-scale patterns of nultivariate environmental adaptationin ##
 
