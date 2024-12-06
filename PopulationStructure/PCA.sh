@@ -30,3 +30,4 @@ plink2 --vcf Spis_noreplicates_badsamples_filtered_linked.vcf \
 	--out Spis_noreplicates_badsamples_filtered_prunned \
 	--pca \
 	--recode vcf
+ 
