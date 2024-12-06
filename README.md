@@ -1,6 +1,6 @@
 # Scripts and data for analyses of whole genome sequence data of Stylophora pistillata Taxon1 corals from the Great Barrier Reef #
 
-1 - Repeatability of genomic architecture of local thermal adaptationa cross isolated populations
+## 1 - Repeatability of genomic architecture of local thermal adaptationa cross isolated populations ##
 
 First, we ran GEA analyses for each population (5 populations) separately - bellow are scripts used for the Heron population: 
 
