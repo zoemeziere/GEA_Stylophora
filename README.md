@@ -1,4 +1,6 @@
-# Scripts and data for preliminary analyses of whole genome sequence data of Stylophora pistillata Taxon1 corals from the Great Barrier Reef #
+# Scripts and data for analyses of whole genome sequence data of Stylophora pistillata Taxon1 corals from the Great Barrier Reef #
+
+1 - Repeatability of genomic architecture of local thermal adaptationa cross isolated populations
 
 First, we ran GEA analyses for each population (5 populations) separately - bellow are scripts used for the Heron population: 
 
@@ -8,7 +10,7 @@ First, we ran GEA analyses for each population (5 populations) separately - bell
 
     * 03_WZA.sh - script used to apply WZA method from correlation results in genomic windows of 10kb
 
-These are the data file needed to run the above scripts only need:
+These are the data file needed to run the above scripts:
 
     * site_env_data_Heron.csv - Environmental data for each sampling sites for GEA
 
