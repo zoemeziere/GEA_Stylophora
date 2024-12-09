@@ -10,32 +10,27 @@
 #SBATCH -o rdaforest_%A.o         # standard output
 #SBATCH -e rdaforest_%A.e             # standard error
 
+# Impute vcf using BEAGLE 4.1
+
+module load java
+
+java -jar beagle.r1399.jar gt=Spis_noreplicates_badsamples_filtered_linked.vcf out=beagle_Spis_filtered_linked
+
+# Transform data into genotype matrix
+
 module load r/4.2.1-foss-2022a
 
 Rscript - <<EOF
 
-library(RDAforest)
-library(rnaturalearth)
-library(rnaturalearthdata)
-library(terra)
-library(viridis)
-library(adegenet)
 library(vcfR)
 
-gen <- read.vcfR("Spis_noreplicates_badsamples_filtered_linked.vcf")
-
-str(gen)
+gen <- read.vcfR("/Users/zoemeziere/Documents/PhD/Chapter3_analyses/vcf_files/beagle4_Spis_filtered_linked_imp.vcf")
 
 gen.gt <- extract.gt(gen)
 gen.gt.t <- t(gen.gt)
-sum(is.na(gen.gt.t)) #59466012
 
 gen.gt.t[gen.gt.t %in% c("0|0", "0/0")] <- 0
 gen.gt.t[gen.gt.t %in% c("0|1", "0/1")] <- 1
 gen.gt.t[gen.gt.t %in% c("1|1", "1/1")] <- 2
 
-gen.imp <- apply(gen.gt.t, 2, function(x) replace(x, is.na(x), as.numeric(names(which.max(table(x))))))
-sum(is.na(gen.imp)) #0
-class(gen.imp) <- "numeric"
-
-saveRDS(gen.imp, "gen.imp.rds")
+saveRDS(gen.gt.t, "SpisTaxon1_linked_imputed.rds")
