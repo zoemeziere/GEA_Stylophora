@@ -102,7 +102,7 @@ results = list()
 for (n in c(2,3,4,5)){
   count = count + 1
   # Run 10,000 replicate simulations of this situation and build the correlation matrix
-  emp_p_null_dat <- t(replicate(40000, GenerateNullData(0.05, 0.5, 3, n, 1000)))
+  emp_p_null_dat <- t(replicate(10000, GenerateNullData(0.05, 0.5, 3, n, 368051)))
   # Calculate the order statistics p-values for each simulation
   emp_p_null_dat_unscaled <- t(apply(emp_p_null_dat ,1, orderStatsPValues))
   # Use those p-values to construct the correlation matrix
