@@ -18,13 +18,17 @@ library(vegan)
 library(data.table)
 library(ggplot2)
 
+# metadata and PC loadings
 SpisTaxon1_metadata <- read.csv("WGSpisTaxon1_Metadata.csv")
 evec = fread("Spis_noreplicates_badsamples_filtered_prunned.eigenvec") # genomic PCA eigenvectors for pRDA
+popstr <- cbind(evec$PC1, evec$PC2)
+
+# environmental data
 X <- read.csv("uncor_env_data_Spis.csv", header = TRUE)
-Y <- readRDS("gen.imp.rds")
-Xcorrected <- cbind(X, "PC1"=evec$PC1, "PC2"=evec$PC2)
-env_data <- Xcorrected[,2:12]
-popstr <- Xcorrected[,13:14]
+env_data <- X[,2:12]
+
+# genomic
+Y <- readRDS("SpisTaxon1_linked_imputed.rds")
 
 ##### Full RDA model with no population structure correction ####
 
