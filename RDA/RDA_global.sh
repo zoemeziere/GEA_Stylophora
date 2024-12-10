@@ -27,7 +27,7 @@ popstr <- cbind(evec$PC1, evec$PC2)
 X <- read.csv("uncor_env_data_Spis.csv", header = TRUE)
 env_data <- X[,2:12]
 
-# genomic
+# genomic data
 Y <- readRDS("SpisTaxon1_linked_imputed.rds")
 
 ##### Full RDA model with no population structure correction ####
@@ -35,10 +35,11 @@ Y <- readRDS("SpisTaxon1_linked_imputed.rds")
 # Set up model
 rda <- rda(Y ~ ., data=X[,-1], scale=T)
 saveRDS(rda, "rda.rds")
-rda <- readRDS("p_rda2.rds")
 
 # test env predictor significance
 rda_anova_results <- anova.cca(rda, by = "term")
+saveRDS(rda_anova_results, file="rda_anova.rds")
+
 rda_importance <- data.frame(Predictor = rownames(rda_anova_results), Variance = rda_anova_results$'Variance')
 saveRDS(rda_importance, file="rda_importance.rds")
 
@@ -47,10 +48,11 @@ saveRDS(rda_importance, file="rda_importance.rds")
 # Set up model
 p_rda <- rda(Y, env_data, popstr, scale=TRUE)
 saveRDS(p_rda, "p_rda.rds")
-p_rda <- readRDS("p_rda.rds")
 
 # test env predictor significance
 prda_anova_results <- anova.cca(rda, by = "term")
+saveRDS(prda_anova_results, file="prda_anova.rds")
+
 prda_importance <- data.frame(Predictor = rownames(prda_anova_results), Variance = prda_anova_results$'Variance')
 saveRDS(prda_importance, file="importance.rds")
 
