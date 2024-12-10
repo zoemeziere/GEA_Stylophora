@@ -24,7 +24,7 @@ evec = fread("Spis_noreplicates_badsamples_filtered_prunned.eigenvec") # genomic
 popstr <- cbind(evec$PC1, evec$PC2)
 
 # environmental data
-X <- read.csv("uncor_env_data_Spis.csv", header = TRUE)
+X <- read.csv("nv_data_Spis_uncor.csv", header = TRUE)
 env_data <- X[,2:12]
 
 # genomic data
