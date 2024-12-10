@@ -1,5 +1,5 @@
 #!/bin/bash --login
-#SBATCH --job-name="RDAforest"     # job name
+#SBATCH --job-name="imputation"     # job name
 #SBATCH --nodes=1               # use 1 node
 #SBATCH --ntasks-per-node=1     # use 1 for single and multi core jobs
 #SBATCH --cpus-per-task=4               # number of cores per job
@@ -7,8 +7,8 @@
 #SBATCH --time=02:00:00         # walltime
 #SBATCH --account=a_riginos             # group account name
 #SBATCH --partition=general             # queue name
-#SBATCH -o rdaforest_%A.o         # standard output
-#SBATCH -e rdaforest_%A.e             # standard error
+#SBATCH -o imputation_%A.o         # standard output
+#SBATCH -e imputation_%A.e             # standard error
 
 # Impute vcf using BEAGLE 4.1
 
