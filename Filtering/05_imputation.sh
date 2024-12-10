@@ -29,8 +29,11 @@ gen <- read.vcfR("/Users/zoemeziere/Documents/PhD/Chapter3_analyses/vcf_files/be
 gen.gt <- extract.gt(gen)
 gen.gt.t <- t(gen.gt)
 
-gen.gt.t[gen.gt.t %in% c("0|0", "0/0")] <- 0
-gen.gt.t[gen.gt.t %in% c("0|1", "0/1")] <- 1
-gen.gt.t[gen.gt.t %in% c("1|1", "1/1")] <- 2
+gen.gt.t[gen.gt.t %in% c("0|0")] <- 0
+gen.gt.t[gen.gt.t %in% c("0|1")] <- 1
+gen.gt.t[gen.gt.t %in% c("1|0")] <- 1
+gen.gt.t[gen.gt.t %in% c("1|1")] <- 2
+
+class(gen.gt.t) <- "numeric"
 
 saveRDS(gen.gt.t, "SpisTaxon1_linked_imputed.rds")
