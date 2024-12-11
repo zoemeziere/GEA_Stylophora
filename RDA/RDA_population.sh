@@ -29,7 +29,7 @@ for(pop in populations) {
   rds_file <- paste0(pop, "_linked_imputed.rds")
   Y_pop <- readRDS(rds_file)
   pop_data <- SpisTaxon1_metadata %>% filter(Population == pop)
-  X_pop <- X[rownames(X) %in% pop_data$Sample_names, ]
+  X_pop <- X[X$Sample_names %in% pop_data$Samples.renames, ]
   rda_pop <- rda(Y_pop ~ ., data=X_pop[,-1], scale=T)
   rda_results[[pop]] <- rda_pop
 }
