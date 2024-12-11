@@ -57,11 +57,14 @@ pdf("rda_populations.pdf")
 for(pop in populations) {
   rda_model <- rda_list[[paste0("rda_", pop)]]
   metadata <- SpisTaxon1_metadata[SpisTaxon1_metadata$Population == pop, ]
+  site_colors <- rainbow(length(unique(metadata$EcoLocationID_short)))
+  names(site_colors) <- unique(metadata$EcoLocationID_short)
+  bg_colors <- site_colors[metadata$EcoLocationID_short]
   plot(rda_model, type="n", scaling=3)
-  points(rda_model, display="species", pch=20, cex=2, col="gray32", scaling=3)           # the SNPs
-  points(rda_model, display="sites", pch=21, cex=2, col="gray32", scaling=3, bg=as.factor(metadata$EcoLocationID_short))  # the samples, colored by site
-  text(rda_model, scaling=3, display="bp", col="black", cex=1)                           # the predictors
-  title(main = paste("RDA Plot -", pop))
+  points(rda_model, display="species", pch=20, cex=2, col="gray32", scaling=3)
+  points(rda_model, display="sites", pch=21, cex=2, col="gray32", scaling=3, bg=bg_colors)
+  text(rda_model, display="bp", col="black", cex=1, scaling=3)
+  title(main = paste("plot_RDA_", pop))
 }
 
 dev.off()
