@@ -59,7 +59,7 @@ for(pop in populations) {
   metadata <- SpisTaxon1_metadata[SpisTaxon1_metadata$Population == pop, ]
   plot(rda_model, type="n", scaling=3)
   points(rda_model, display="species", pch=20, cex=2, col="gray32", scaling=3)           # the SNPs
-  points(rda_model, display="sites", pch=21, cex=2, col="gray32", scaling=3, bg=as.factor(current_metadata$EcoLocationID_short))  # the samples, colored by site
+  points(rda_model, display="sites", pch=21, cex=2, col="gray32", scaling=3, bg=as.factor(metadata$EcoLocationID_short))  # the samples, colored by site
   text(rda_model, scaling=3, display="bp", col="black", cex=1)                           # the predictors
   title(main = paste("RDA Plot -", pop))
 }
