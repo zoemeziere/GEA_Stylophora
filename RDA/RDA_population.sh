@@ -64,9 +64,20 @@ for(pop in populations) {
   points(rda_model, display="species", pch=20, cex=2, col="gray32", scaling=3)
   points(rda_model, display="sites", pch=21, cex=2, col="gray32", scaling=3, bg=bg_colors)
   text(rda_model, display="bp", col="black", cex=1, scaling=3)
-  title(main = paste("plot_RDA_", pop))
+  title(main = paste("plot_RDA_ind_", pop))
 }
 
 dev.off()
 
+pdf("rda_populations_snps.pdf")
+
+for(pop in populations) {
+  rda_model <- rda_list[[paste0("rda_", pop)]]
+  plot(rda_model, type="n", scaling=3, xlim=c(-0.4,0.4), ylim=c(-0.4,0.4))
+  points(rda_model, display="species", pch=21, cex=1, col="gray32", scaling=3)
+  text(rda_model, scaling=3, display="bp", col="black", cex=1)
+  title(main = paste("plot_RDA_snps_", pop))
+}
+
+dev.off()
 EOF
