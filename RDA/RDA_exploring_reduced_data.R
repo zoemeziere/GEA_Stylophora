@@ -40,6 +40,24 @@ summary(global_latlong.rda) # not that much better! but it's only 1000 loci..
 # Because the grid sizes exceed our sampling size (=individual) we should be adding a random effect 
 # to deal with grid sizes for spatial data 
 # I am going to hack the grid identity 
+# Convert the matrix to a data frame for this operation
+env2_df <- as.data.frame(env2)
+
+# Select all columns except Depth and DistanceLand
+cols_to_consider <- setdiff(colnames(env2), c("Depth", "DistanceLand"))
+
+# Create a factor based on identical rows
+site_factor <- as.factor(apply(env2[, cols_to_consider, drop = FALSE], 1, paste, collapse = "_"))
+
+# turn env back into a matrix
+env2 <- as.matrix(env2)
+
+
+# RDA with blocks 
+global_block.rda <- rda(genotypes_imputed ~ env2 + Condition(site_factor), scale=T)
+
+global_block.rda 
 
 
 
+#https://cran.r-project.org/web/packages/permute/vignettes/permutations.html
