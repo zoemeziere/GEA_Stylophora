@@ -1,4 +1,5 @@
 # Based on example https://fromthebottomoftheheap.net/2014/11/03/randomized-complete-block-designs-and-vegan/
+# Using this to understanding how blocks and nested structures work
 
 library(vegan)
 library(gdata)
@@ -69,3 +70,8 @@ p2
 set.seed(83)
 p2axis <- anova(mod1, permutations = h, parallel = 3, by = "axis")
 p2axis
+
+
+
+# More details on how to set up hierarchical designs
+#https://cran.r-project.org/web/packages/permute/vignettes/permutations.html
