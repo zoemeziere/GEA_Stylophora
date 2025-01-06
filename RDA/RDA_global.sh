@@ -18,23 +18,19 @@ library(vegan)
 library(data.table)
 library(ggplot2)
 
-# metadata and PC loadings
+# metadata, environmental and genomic data
 SpisTaxon1_metadata <- read.csv("WGSpisTaxon1_Metadata.csv")
-evec = fread("Spis_noreplicates_badsamples_filtered_prunned.eigenvec") # genomic PCA eigenvectors for pRDA
-popstr <- cbind(evec$PC1, evec$PC2)
-
-# environmental data
-X <- read.csv("nv_data_Spis_uncor.csv", header = TRUE)
-env_data <- X[,2:12]
-
-# genomic data
+X <- read.csv("env_data_Spis_uncor.csv", header = TRUE)
 Y <- readRDS("SpisTaxon1_linked_imputed.rds")
 
-##### Full RDA model with no population structure correction ####
+X <- X[match(rownames(Y), X$'Samples.renames'), ]
+X <- X[,-2] # remove sample names
+
+##### Full global RDA model  ####
 
 # Set up model
 rda <- rda(Y ~ ., data=X[,-1], scale=T)
-saveRDS(rda, "rda.rds")
+saveRDS(rda, "global_rda.rds")
 
 # test env predictor significance
 rda_anova_results <- anova.cca(rda, by = "term")
@@ -43,18 +39,14 @@ saveRDS(rda_anova_results, file="rda_anova.rds")
 rda_importance <- data.frame(Predictor = rownames(rda_anova_results), Variance = rda_anova_results$'Variance')
 saveRDS(rda_importance, file="rda_importance.rds")
 
-##### Partial RDA model with population structure correction ####
+##### Full global RDA model conditionning for sampling site  ####
 
-# Set up model
-p_rda <- rda(Y, env_data, popstr, scale=TRUE)
-saveRDS(p_rda, "p_rda.rds")
+X$EcoLocationID_short  <- as.numeric(as.factor(X$EcoLocationID_short))
+env_vars <- setdiff(names(X), "EcoLocationID_short")  # All predictors except the conditional variable
+formula <- as.formula(paste("Y ~", paste(env_vars, collapse = " + "), "+ Condition(EcoLocationID_short)"))
 
-# test env predictor significance
-prda_anova_results <- anova.cca(rda, by = "term")
-saveRDS(prda_anova_results, file="prda_anova.rds")
-
-prda_importance <- data.frame(Predictor = rownames(prda_anova_results), Variance = prda_anova_results$'Variance')
-saveRDS(prda_importance, file="importance.rds")
+rda_blocks <- rda(formula, data = X, scale = TRUE)
+saveRDS(rda_blocks, "global_rda_blocks.rds")
 
 #### RDA plot with individuals and env vectors ####
 
