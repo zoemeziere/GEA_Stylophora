@@ -43,15 +43,15 @@ for (test_pop in populations) {
       pdf(file = paste0(test_pop_dir, "/", test_pop, "_trained_on_", train_pop, ".pdf"))
 
       # Plotting genotypes position under two models
-      plot(rda_model$CCA$u[, 1], rda_model$CCA$u[, 2],
-           main = paste("True RDA for", test_pop, "vs predicted RDA for", test_pop, "trained using", train_pop),
-           xlab = "RDA1", ylab = "RDA2",
-           col = "blue", pch = 19)
+      plot(pred_model[, 1], pred_model[, 2], 
+            main = paste("True RDA for", test_pop, "vs predicted RDA for", test_pop, "trained using", train_pop),
+            xlab = "RDA1", ylab = "RDA2", col = "red", pch = 19,
+            xlim = c(min(pred_model[, 1], rda_model$CCA$u[, 1]), max(pred_model[, 1], rda_model$CCA$u[, 1])), 
+            ylim =c(min(pred_model[, 2], rda_model$CCA$u[, 2]), max(pred_model[, 2], rda_model$CCA$u[, 2])))
+      points(rda_model$CCA$u[, 1], rda_model$CCA$u[, 2], col = "blue", pch = 19)
 
-      points(pred_model[, 1], pred_model[, 2], col = "red", pch = 19)
-
-      legend("topright", legend = c("True RDA Model", "Predicted RDA Model"),
-               col = c("blue", "red"), pch = 19)
+      legend("topright", legend = c("Predicted RDA Model", "True RDA Model"),
+               col = c("red", "blue"), pch = 19)
 
       dev.off()
     }
