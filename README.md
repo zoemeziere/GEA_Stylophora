@@ -1,1 +1,1 @@
-# Scripts and data for analyses of whole genome sequence data of Stylophora pistillata Taxon1 corals from the Great Barrier Reef #
+# Scripts and data to run genotype by environment analyses in Stylophora pistillata corals from the Great Barrier Reef #
