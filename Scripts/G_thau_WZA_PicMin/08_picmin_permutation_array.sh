@@ -5,13 +5,13 @@
 #SBATCH --cpus-per-task=4               # number of cores per job
 #SBATCH --mem=500G                              # RAM per job given in megabytes (M), gigabytes (G), or terabytes (T)
 #SBATCH --time=72:00:00         # walltime
-#SBATCH --account=a_riginos             # group account name
+#SBATCH --account=a_senv_mbos             # group account name
 #SBATCH --partition=general             # queue name
 #SBATCH --array=1-1000
 #SBATCH -o picmin_perm_%A.o         # standard output
 #SBATCH -e picmin_perm_%A.e             # standard error
 
-module load r/4.2.1-foss-2022a
+module load r/4.4.0-gfbf-2023a
 
 # Run your R script and pass the array task ID as a variable
 Rscript 05_picmin_permutation.R $SLURM_ARRAY_TASK_ID

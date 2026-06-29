@@ -4,13 +4,13 @@
 #SBATCH --ntasks-per-node=1     # use 1 for single and multi core jobs
 #SBATCH --cpus-per-task=4		# number of cores per job
 #SBATCH --mem=100G				# RAM per job given in megabytes (M), gigabytes (G), or terabytes (T)
-#SBATCH --time=48:00:00		# walltime
-#SBATCH --account=a_riginos		# group account name
+#SBATCH --time=1:00:00		# walltime
+#SBATCH --account=a_senv_mbos		# group account name
 #SBATCH --partition=general		# queue name
 #SBATCH -o gea_%A.o         # standard output
 #SBATCH -e gea_%A.e	        # standard error
 
-module load r/4.2.1-foss-2022a
+module load r/4.4.0-gfbf-2023a
 
 Rscript - <<EOF
 
@@ -24,13 +24,13 @@ library(psych)
 cl <- makeCluster(12, type="FORK")
 registerDoParallel(cl)
 
-env_mat <- read.csv("site_env_data.csv", header=TRUE)
+env_mat <- read.csv("site_env_data_CentralOffshore.csv", header=TRUE)
 env_mat <- as.data.frame(env_mat)
 
 af_mat <- readRDS("af_mat.rds")
 
 # Reorder columns in env_mat to match rows in af_mat (populations)
-env_mat[, 1] <- env_mat[match(rownames(af_mat), env_mat[, 1]), 1]
+env_mat <- env_mat[match(rownames(af_mat), env_mat[, 1]), ]
 identical(env_mat[, 1], rownames(af_mat))
 
 # Make wrapper function for cor.test to return the summary stat and the p-value as a vector

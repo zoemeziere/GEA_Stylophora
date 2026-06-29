@@ -22,14 +22,20 @@ pca_df$Population <- env_rda_scaled$Reef
 
 pca_df$Population <- factor(pca_df$Population, levels = names(location_colors))
 
+# How much var?
+eig <- (pca_res$sdev)^2
+eig <- bstick(length(eig)) # first four axes capture more than 93% of variation 
+
+
 # Env. loadings
 env_loadings <- as.data.frame(pca_res$rotation[, 1:2])  # PC1 & PC2 loadings
 env_loadings$Variable <- rownames(env_loadings)
-arrow_scale <- 3  # adjust to make arrows fit nicely
+arrow_scale <- 3
 env_arrows <- env_loadings
 env_arrows$PC1 <- env_arrows$PC1 * arrow_scale
 env_arrows$PC2 <- env_arrows$PC2 * arrow_scale
 
+# PCA plot
 ggplot(pca_df, aes(x = PC1, y = PC2, fill = Population, shape = Depth)) +
   geom_point(size = 6, color = "black") +   # black outline
   geom_segment(data = env_arrows,
@@ -76,15 +82,6 @@ ggplot(env_long, aes(x = Population, y = Value, fill = Population)) +
 
 
 # Box plots of environmental heterogeneity within reefs - centred for each population
-location_colors <- c(
-  "LadyMusgrave" = "#5C9FD1",
-  "Heron"        = "#5CBED1",
-  "Pelorus"      = "#F2C738",
-  "Central"      = "#7BB52B",
-  "Moore"        = "#F39237",
-  "Lizard"       = "#B05102"
-)
-
 env_long <- env_rda_unscaled %>%
   mutate(
     Population = recode(Population,

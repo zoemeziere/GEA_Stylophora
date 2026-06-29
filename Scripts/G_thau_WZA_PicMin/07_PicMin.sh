@@ -5,16 +5,19 @@
 #SBATCH --cpus-per-task=4               # number of cores per job
 #SBATCH --mem=500G                              # RAM per job given in megabytes (M), gigabytes (G), or terabytes (T)
 #SBATCH --time=48:00:00         # walltime
-#SBATCH --account=a_riginos             # group account name
+#SBATCH --account=a_senv_mbos             # group account name
 #SBATCH --partition=general             # queue name
 #SBATCH -o picmin_%A.o         # standard output
 #SBATCH -e picmin_%A.e             # standard error
 
-module load r/4.2.1-foss-2022a
+module load r/4.4.0-gfbf-2023a
 
 Rscript - <<EOF
 
 # PicMin functions
+
+library(tidyverse)
+library(poolr)
 
 orderStatsPValues <- function(p_list){
   ## This function returns a list of the p-values for each of marginal p-values
@@ -51,10 +54,21 @@ GenerateNullData <- function(adaptation_screen, a, b, n, genes){
   return(temp)
 }
 
+empirical_ps <- function( vector_of_values ){
+  1-rank(vector_of_values)/length(vector_of_values)
+}
 
-library(PicMin)
-library(tidyverse)
-library(poolr)
+get_names <- function( lineage_df ){
+  return( paste( lineage_df$scaff, lineage_df$start,
+         sep = "_") )
+}
+
+min_pop <- function(population_df, population_name){
+  tmp <- data.frame(emp_p = population_df$emp_p,
+                    win_id = population_df$gene)
+  names(tmp) <- c(population_name, "win_id")
+  return(tmp)
+}
 
 Moore <- read.csv("wza_output_Moore.csv")
 Lizard <- read.csv("wza_output_Lizard.csv")
@@ -64,26 +78,19 @@ Heron <- read.csv("wza_output_Heron.csv")
 
 # Calculate p values from WZA score
 
-Moore$'emp_p' <- PicMin:::EmpiricalPs(Moore$'Z', large_i_small_p=TRUE)
-Lizard$'emp_p' <- PicMin:::EmpiricalPs(Lizard$'Z', large_i_small_p=TRUE)
-Pelorus$'emp_p' <- PicMin:::EmpiricalPs(Pelorus$'Z', large_i_small_p=TRUE)
-CentralOffshore$'emp_p' <- PicMin:::EmpiricalPs(CentralOffshore$'Z', large_i_small_p=TRUE)
-Heron$'emp_p' <- PicMin:::EmpiricalPs(Heron$'Z', large_i_small_p=TRUE)
+Moore$emp_p <- empirical_ps(abs(Moore$Z))
+Lizard$emp_p <- empirical_ps(abs(Lizard$Z))
+Pelorus$emp_p <- empirical_ps(abs(Pelorus$Z))
+CentralOffshore$emp_p <- empirical_ps(abs(CentralOffshore$Z))
+Heron$emp_p <- empirical_ps(abs(Heron$Z))
 
-#saveRDS(Moore, "Moore_WZA.rds")
-#saveRDS(Lizard, "Lizard_WZA.rds")
-#saveRDS(Pelorus, "Pelorus_WZA.rds")
-#saveRDS(CentralOffshore, "CentralOffshore_WZA.rds")
-#saveRDS(Heron, "Heron_WZA.rds")
+saveRDS(Moore, "Moore_WZA.rds")
+saveRDS(Lizard, "Lizard_WZA.rds")
+saveRDS(Pelorus, "Pelorus_WZA.rds")
+saveRDS(CentralOffshore, "CentralOffshore_WZA.rds")
+saveRDS(Heron, "Heron_WZA.rds")
 
 # Minimise dataframes
-
-min_pop <- function( population_df , population_name){
-  tmp <- data.frame(emp_p = population_df$'emp_p',
-                     win_id = population_df$'gene')
-  names(tmp) <- c(population_name, "win_id")
-  return(tmp)
-}
 
 Moore_m <- min_pop(Moore, "Moore")
 Lizard_m <- min_pop(Lizard, "Lizard")
@@ -94,55 +101,51 @@ Heron_m <- min_pop(Heron, "Heron")
 # Combine data frames for each population
 
 df_list <- list(Moore_m, Lizard_m, Pelorus_m, CentralOffshore_m, Heron_m)
-
-#all_pops <- df_list %>% reduce(full_join, by='win_id')
 all_pops <- Reduce(function(x, y) merge(x, y, by = "win_id", all = TRUE), df_list)
-
-all_pops_p <- all_pops[ , !(names(all_pops) %in% c("win_id"))] # remove the column named win_id
-rownames(all_pops_p) <- all_pops$'win_id'
+all_pops_p <- all_pops[, !(names(all_pops) %in% c("win_id"))]
+rownames(all_pops_p) <- all_pops$win_id
 
 # Caculate null correlation matrix and apply PicMin
 count=0
 nLins=5
 results = list()
+alpha=0.05
 
 for (n in c(3,4,5)){
-  count = count + 1
-  # Run 10,000 replicate simulations of this situation and build the correlation matrix
-  emp_p_null_dat <- t(replicate(10000, GenerateNullData(0.05, 0.5, 3, n, 32437)))
-  # Calculate the order statistics p-values for each simulation
-  emp_p_null_dat_unscaled <- t(apply(emp_p_null_dat ,1, orderStatsPValues))
-  # Use those p-values to construct the correlation matrix
+  count <- count + 1
+
+  # Build null correlation matrix using fixed function and actual window count
+  emp_p_null_dat <- t(replicate(10000, GenerateNullData(alpha, 0.5, 3, n, 31828)))
+  emp_p_null_dat_unscaled <- t(apply(emp_p_null_dat, 1, orderStatsPValues))
   null_pMax_cor_unscaled <- cor(emp_p_null_dat_unscaled)
 
-  # Screen out gene with no evidence for adaptation
-  pops_p_screened <- all_pops_p[apply(all_pops_p <0.05,1,function(x) sum(na.omit(x)))!=0, ]
-  pops_p_n_screened <-  as.matrix(pops_p_screened[rowSums(is.na(pops_p_screened)) == nLins-n,])
-
-  res_p <- rep(-1, nrow(pops_p_n_screened))
-  res_n <- rep(-1, nrow(pops_p_n_screened))
+  # Filter out windows based on alpha threshold
+  pops_p_screened <- all_pops_p[ apply(all_pops_p<alpha,1,function(x) sum(na.omit(x)))!=0, ]
+  pops_p_n_screened <- as.matrix(pops_p_screened[rowSums(is.na(pops_p_screened)) == nLins-n,])
 
   if (dim(pops_p_n_screened)[1] ==0){
     next
   }
+  res_p <- rep(-1,
+               nrow(pops_p_n_screened))
+  res_n <- rep(-1,
+               nrow(pops_p_n_screened))
 
   for (i in seq(nrow(pops_p_n_screened)) ){
     test_result <- PicMin(na.omit(pops_p_n_screened[i,]), null_pMax_cor_unscaled, numReps = 10000)
-    res_p[i] <- test_result$'p'
-    res_n[i] <- test_result$'config_est'
+    res_p[i] <- test_result$p
+    res_n[i] <- test_result$config_est
   }
-
   results[[count]] = data.frame(numLin = n ,
                                 p = res_p,
-                                q = p.adjust(res_p, method = "fdr"),
-                                n_est = res_n,
-                                window = row.names(pops_p_n_screened))
-}
+                                 q = p.adjust(res_p, method = "fdr"),
+                                 n_est = res_n,
+                                 locus = row.names(pops_p_n_screened) )
+
+  }
 
 picMin_results <- do.call(rbind, results)
-
-picMin_results$'pooled_q' <- p.adjust(picMin_results$'p', method = "fdr")
-
+picMin_results$pooled_q <- p.adjust(picMin_results$p, method = "fdr")
 saveRDS(picMin_results, "picMin_results.rds")
 
 EOF

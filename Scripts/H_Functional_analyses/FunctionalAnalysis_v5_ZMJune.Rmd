@@ -1,0 +1,1497 @@
+---
+title: "EnrichmentAnalysis"
+output: html_document
+date: "2025-08-15"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo    = TRUE,   # show code by default
+  results = 'hide', # hide printed output by default
+  message = FALSE,  # hide package startup messages
+  warning = FALSE   # hide warnings
+)
+```
+
+### 2) Read functional info from InterProScan to get a clean list of GO terms
+
+```{r build_custom_orgdb_interpro_eggnog}
+# -------------------------------------------------------------------------
+# Build custom OrgDb for Stylophora pistillata
+# using InterProScan + eggNOG-mapper GO annotations
+# -------------------------------------------------------------------------
+
+library(tidyverse)
+library(stringr)
+library(readr)
+library(rtracklayer)
+library(ontologyIndex)
+library(AnnotationForge)
+
+# -------------------------------------------------------------------------
+# 0. Input files and package metadata
+# -------------------------------------------------------------------------
+
+gff_file      <- "complete.genomic.gff"
+interpro_file <- "complete.genomic.faa.pstillata.v052.interproscan.results.tsv"
+eggnog_file   <- "eggnog_results/complete.proteins.emapper.annotations"
+go_obo_file   <- "go.obo"
+
+pkg_version <- "0.6.0"
+out_dir     <- "."
+tax_id      <- "50429"
+genus       <- "Stylophora"
+species     <- "pistillata2"
+
+orgdb_pkg_name <- "org.Spistillata2.eg.db"
+
+# -------------------------------------------------------------------------
+# 1. Import GFF and flatten list columns from rtracklayer
+# -------------------------------------------------------------------------
+
+flatten_gff_col <- function(x) {
+  if (is.list(x)) {
+    vapply(
+      x,
+      function(y) {
+        if (length(y) == 0 || all(is.na(y))) {
+          NA_character_
+        } else {
+          paste(as.character(y), collapse = ",")
+        }
+      },
+      character(1)
+    )
+  } else {
+    as.character(x)
+  }
+}
+
+gr <- rtracklayer::import(gff_file)
+
+df <- as_tibble(gr) %>%
+  dplyr::mutate(seqid = as.character(seqnames))
+
+needed_cols <- c(
+  "ID", "Parent", "gene", "Name", "product", "description",
+  "locus_tag", "protein_id", "orig_protein_id", "orig_transcript_id"
+)
+
+for (cc in needed_cols) {
+  if (!cc %in% names(df)) {
+    df[[cc]] <- NA_character_
+  }
+}
+
+df <- df %>%
+  dplyr::mutate(
+    dplyr::across(
+      dplyr::all_of(needed_cols),
+      flatten_gff_col
+    )
+  )
+
+# -------------------------------------------------------------------------
+# 2. Build gene-level annotation tables
+# -------------------------------------------------------------------------
+# GID      = stable locus_tag, e.g. egapxtmp_004582
+# SYMBOL   = gene symbol if available, otherwise Name/locus_tag
+# GENENAME = readable description/product/name fallback
+
+gene_features <- df %>%
+  dplyr::filter(type == "gene") %>%
+  dplyr::transmute(
+    gene_feature_id = ID,
+    GID = locus_tag,
+    SYMBOL = dplyr::coalesce(
+      dplyr::na_if(gene, ""),
+      dplyr::na_if(Name, ""),
+      locus_tag
+    ),
+    GENENAME = dplyr::coalesce(
+      dplyr::na_if(description, ""),
+      dplyr::na_if(product, ""),
+      dplyr::na_if(Name, ""),
+      dplyr::na_if(gene, ""),
+      locus_tag
+    ),
+    CHROMOSOME = seqid
+  ) %>%
+  dplyr::filter(!is.na(gene_feature_id), gene_feature_id != "") %>%
+  dplyr::filter(!is.na(GID), GID != "") %>%
+  dplyr::distinct(gene_feature_id, .keep_all = TRUE)
+
+gene_info <- gene_features %>%
+  dplyr::select(GID, SYMBOL, GENENAME) %>%
+  dplyr::distinct(GID, .keep_all = TRUE)
+
+chromosome <- gene_features %>%
+  dplyr::select(GID, CHROMOSOME) %>%
+  dplyr::filter(!is.na(GID), GID != "") %>%
+  dplyr::filter(!is.na(CHROMOSOME), CHROMOSOME != "") %>%
+  dplyr::distinct()
+
+cat("Genes in GFF gene features:", dplyr::n_distinct(gene_features$GID), "\n")
+cat("Rows in gene_info:", nrow(gene_info), "\n")
+cat("Rows in chromosome:", nrow(chromosome), "\n")
+
+# -------------------------------------------------------------------------
+# 3. Build mRNA -> gene map
+# -------------------------------------------------------------------------
+
+mrna_to_gene <- df %>%
+  dplyr::filter(type == "mRNA") %>%
+  dplyr::transmute(
+    mrna_id = ID,
+    gene_feature_id = Parent,
+    mrna_locus_tag = locus_tag,
+    mrna_gene_symbol = gene,
+    orig_protein_id = orig_protein_id,
+    orig_transcript_id = orig_transcript_id,
+    product = product
+  ) %>%
+  tidyr::separate_rows(gene_feature_id, sep = ",") %>%
+  dplyr::mutate(
+    mrna_id = stringr::str_trim(mrna_id),
+    gene_feature_id = stringr::str_trim(gene_feature_id)
+  ) %>%
+  dplyr::left_join(
+    gene_features %>%
+      dplyr::select(gene_feature_id, GID, SYMBOL, GENENAME),
+    by = "gene_feature_id"
+  ) %>%
+  dplyr::filter(!is.na(mrna_id), mrna_id != "") %>%
+  dplyr::filter(!is.na(GID), GID != "") %>%
+  dplyr::distinct()
+
+cat("mRNAs mapped to genes:", dplyr::n_distinct(mrna_to_gene$mrna_id), "\n")
+
+# -------------------------------------------------------------------------
+# 4. Build clean protein accession -> gene map
+# -------------------------------------------------------------------------
+# InterProScan and eggNOG protein queries should match values like:
+# gnl|WGS:ZZZZ|egapxtmp_004582-P1
+#
+# In this GFF, those accessions are stored on CDS rows as:
+# Name, protein_id, and/or orig_protein_id.
+
+protein_to_gene_long <- df %>%
+  dplyr::filter(type == "CDS") %>%
+  dplyr::transmute(
+    mrna_id = Parent,
+    Name = Name,
+    protein_id = protein_id,
+    orig_protein_id = orig_protein_id
+  ) %>%
+  tidyr::separate_rows(mrna_id, sep = ",") %>%
+  dplyr::mutate(mrna_id = stringr::str_trim(mrna_id)) %>%
+  dplyr::left_join(
+    mrna_to_gene %>%
+      dplyr::select(mrna_id, gene_feature_id, GID, SYMBOL, GENENAME),
+    by = "mrna_id"
+  ) %>%
+  tidyr::pivot_longer(
+    cols = c(Name, protein_id, orig_protein_id),
+    names_to = "id_source",
+    values_to = "protein_accession"
+  ) %>%
+  dplyr::mutate(protein_accession = stringr::str_trim(protein_accession)) %>%
+  dplyr::filter(!is.na(protein_accession), protein_accession != "") %>%
+  dplyr::filter(!is.na(GID), GID != "") %>%
+  dplyr::distinct(protein_accession, GID, SYMBOL, GENENAME, id_source)
+
+ambiguous_protein_map <- protein_to_gene_long %>%
+  dplyr::distinct(protein_accession, GID) %>%
+  dplyr::count(protein_accession, name = "n_gid") %>%
+  dplyr::filter(n_gid > 1)
+
+cat("Protein accessions mapping to multiple genes:", nrow(ambiguous_protein_map), "\n")
+
+if (nrow(ambiguous_protein_map) > 0) {
+  protein_to_gene_long %>%
+    dplyr::semi_join(ambiguous_protein_map, by = "protein_accession") %>%
+    dplyr::arrange(protein_accession, GID) %>%
+    print(n = 50)
+}
+
+protein_to_gene <- protein_to_gene_long %>%
+  dplyr::mutate(
+    id_source_priority = dplyr::case_when(
+      id_source == "protein_id" ~ 1L,
+      id_source == "orig_protein_id" ~ 2L,
+      id_source == "Name" ~ 3L,
+      TRUE ~ 99L
+    )
+  ) %>%
+  dplyr::arrange(protein_accession, id_source_priority) %>%
+  dplyr::distinct(protein_accession, .keep_all = TRUE) %>%
+  dplyr::select(
+    protein_accession,
+    GID,
+    SYMBOL,
+    GENENAME,
+    id_source
+  )
+
+cat("Unique protein accessions in GFF map:", dplyr::n_distinct(protein_to_gene$protein_accession), "\n")
+
+# Optional known-example check
+protein_to_gene %>%
+  dplyr::filter(stringr::str_detect(protein_accession, "egapxtmp_004582")) %>%
+  print(n = 20)
+
+# -------------------------------------------------------------------------
+# 5. Read InterProScan GO annotations and map protein -> gene
+# -------------------------------------------------------------------------
+
+IPS_header <- c(
+  "Protein_accession", "Sequence_MD5", "Sequence_length", "Analysis",
+  "Signature_accession", "Signature_description", "Start", "Stop", "Score",
+  "Status", "Date", "InterPro_accession", "InterPro_description",
+  "GO_terms", "Pathways"
+)
+
+interpro_raw <- read.delim(
+  interpro_file,
+  header = FALSE,
+  sep = "\t",
+  col.names = IPS_header,
+  stringsAsFactors = FALSE
+)
+
+interpro_go_protein <- interpro_raw %>%
+  dplyr::select(Protein_accession, GO_terms) %>%
+  dplyr::filter(!is.na(GO_terms), GO_terms != "-") %>%
+  tidyr::separate_rows(GO_terms, sep = "\\|") %>%
+  dplyr::mutate(
+    Protein_accession = stringr::str_trim(Protein_accession),
+    GO = stringr::str_remove(GO_terms, "\\(.*\\)"),
+    GO = stringr::str_trim(GO)
+  ) %>%
+  dplyr::filter(stringr::str_detect(GO, "^GO:\\d{7}$")) %>%
+  dplyr::select(Protein_accession, GO) %>%
+  dplyr::distinct()
+
+interpro_go <- interpro_go_protein %>%
+  dplyr::left_join(
+    protein_to_gene,
+    by = c("Protein_accession" = "protein_accession")
+  ) %>%
+  dplyr::mutate(
+    fallback_GID = Protein_accession %>%
+      stringr::str_remove("^.*\\|") %>%
+      stringr::str_remove("-P[0-9]+$"),
+    GID_final = dplyr::case_when(
+      !is.na(GID) ~ GID,
+      fallback_GID %in% gene_info$GID ~ fallback_GID,
+      TRUE ~ NA_character_
+    ),
+    map_method = dplyr::case_when(
+      !is.na(GID) ~ "gff_exact",
+      is.na(GID) & fallback_GID %in% gene_info$GID ~ "regex_fallback",
+      TRUE ~ "unmapped"
+    )
+  )
+
+cat("\n--- InterProScan protein-to-gene mapping ---\n")
+
+interpro_go %>%
+  dplyr::distinct(Protein_accession, GID_final, map_method) %>%
+  dplyr::count(map_method) %>%
+  print()
+
+interpro_go <- interpro_go %>%
+  dplyr::filter(!is.na(GID_final)) %>%
+  dplyr::transmute(
+    GID = GID_final,
+    GO = GO,
+    EVIDENCE = "IEA",
+    SOURCE = "InterProScan"
+  ) %>%
+  dplyr::distinct()
+
+# -------------------------------------------------------------------------
+# 6. Read eggNOG-mapper GO annotations and map protein -> gene
+# -------------------------------------------------------------------------
+# eggNOG annotations file:
+#   query column = #query
+#   GO column    = GOs
+#   GO terms are comma-separated.
+
+eggnog_raw <- readr::read_tsv(
+  eggnog_file,
+  comment = "##",
+  show_col_types = FALSE
+)
+
+if ("#query" %in% names(eggnog_raw)) {
+  eggnog_raw <- eggnog_raw %>%
+    dplyr::rename(query = `#query`)
+}
+
+stopifnot("query" %in% names(eggnog_raw))
+stopifnot("GOs" %in% names(eggnog_raw))
+
+eggnog_go_protein <- eggnog_raw %>%
+  dplyr::select(query, GOs) %>%
+  dplyr::filter(!is.na(GOs), GOs != "-", GOs != "") %>%
+  tidyr::separate_rows(GOs, sep = ",") %>%
+  dplyr::mutate(
+    query = stringr::str_trim(query),
+    GO = stringr::str_trim(GOs)
+  ) %>%
+  dplyr::filter(stringr::str_detect(GO, "^GO:\\d{7}$")) %>%
+  dplyr::select(query, GO) %>%
+  dplyr::distinct()
+
+eggnog_go <- eggnog_go_protein %>%
+  dplyr::left_join(
+    protein_to_gene,
+    by = c("query" = "protein_accession")
+  ) %>%
+  dplyr::mutate(
+    fallback_GID = query %>%
+      stringr::str_remove("^.*\\|") %>%
+      stringr::str_remove("-P[0-9]+$"),
+    GID_final = dplyr::case_when(
+      !is.na(GID) ~ GID,
+      fallback_GID %in% gene_info$GID ~ fallback_GID,
+      TRUE ~ NA_character_
+    ),
+    map_method = dplyr::case_when(
+      !is.na(GID) ~ "gff_exact",
+      is.na(GID) & fallback_GID %in% gene_info$GID ~ "regex_fallback",
+      TRUE ~ "unmapped"
+    )
+  )
+
+cat("\n--- eggNOG protein-to-gene mapping ---\n")
+
+eggnog_go %>%
+  dplyr::distinct(query, GID_final, map_method) %>%
+  dplyr::count(map_method) %>%
+  print()
+
+eggnog_go <- eggnog_go %>%
+  dplyr::filter(!is.na(GID_final)) %>%
+  dplyr::transmute(
+    GID = GID_final,
+    GO = GO,
+    EVIDENCE = "IEA",
+    SOURCE = "eggNOG-mapper"
+  ) %>%
+  dplyr::distinct()
+
+# -------------------------------------------------------------------------
+# 7. Brief comparison: InterProScan vs eggNOG
+# -------------------------------------------------------------------------
+
+cat("\n--- GO source comparison: gene-level coverage ---\n")
+
+ips_genes <- unique(interpro_go$GID)
+egg_genes <- unique(eggnog_go$GID)
+
+gene_source_summary <- tibble::tibble(
+  category = c(
+    "InterProScan genes with GO",
+    "eggNOG genes with GO",
+    "Shared genes with GO",
+    "InterProScan-only genes with GO",
+    "eggNOG-only genes with GO",
+    "Combined genes with GO",
+    "Total genes in gene_info"
+  ),
+  n_genes = c(
+    length(ips_genes),
+    length(egg_genes),
+    length(intersect(ips_genes, egg_genes)),
+    length(setdiff(ips_genes, egg_genes)),
+    length(setdiff(egg_genes, ips_genes)),
+    length(union(ips_genes, egg_genes)),
+    dplyr::n_distinct(gene_info$GID)
+  )
+) %>%
+  dplyr::mutate(
+    pct_of_gene_info = round(
+      100 * n_genes / dplyr::n_distinct(gene_info$GID),
+      2
+    )
+  )
+
+print(gene_source_summary)
+
+cat("\n--- GO source comparison: exact GID-GO pair overlap ---\n")
+
+ips_pairs <- interpro_go %>%
+  dplyr::select(GID, GO) %>%
+  dplyr::distinct()
+
+egg_pairs <- eggnog_go %>%
+  dplyr::select(GID, GO) %>%
+  dplyr::distinct()
+
+go_pair_summary <- tibble::tibble(
+  category = c(
+    "InterProScan GID-GO pairs",
+    "eggNOG GID-GO pairs",
+    "Shared exact GID-GO pairs",
+    "InterProScan-only GID-GO pairs",
+    "eggNOG-only GID-GO pairs",
+    "Combined exact GID-GO pairs"
+  ),
+  n_pairs = c(
+    nrow(ips_pairs),
+    nrow(egg_pairs),
+    nrow(dplyr::inner_join(ips_pairs, egg_pairs, by = c("GID", "GO"))),
+    nrow(dplyr::anti_join(ips_pairs, egg_pairs, by = c("GID", "GO"))),
+    nrow(dplyr::anti_join(egg_pairs, ips_pairs, by = c("GID", "GO"))),
+    nrow(dplyr::distinct(dplyr::bind_rows(ips_pairs, egg_pairs)))
+  )
+)
+
+print(go_pair_summary)
+
+cat("\n--- GO source comparison: GO-term-level overlap ---\n")
+
+ips_terms <- unique(interpro_go$GO)
+egg_terms <- unique(eggnog_go$GO)
+
+go_term_summary <- tibble::tibble(
+  category = c(
+    "InterProScan unique GO terms",
+    "eggNOG unique GO terms",
+    "Shared GO terms",
+    "InterProScan-only GO terms",
+    "eggNOG-only GO terms",
+    "Combined GO terms"
+  ),
+  n_terms = c(
+    length(ips_terms),
+    length(egg_terms),
+    length(intersect(ips_terms, egg_terms)),
+    length(setdiff(ips_terms, egg_terms)),
+    length(setdiff(egg_terms, ips_terms)),
+    length(union(ips_terms, egg_terms))
+  )
+)
+
+print(go_term_summary)
+
+# -------------------------------------------------------------------------
+# 8. Combine GO annotations and keep provenance
+# -------------------------------------------------------------------------
+
+combined_go_with_source <- dplyr::bind_rows(
+  interpro_go,
+  eggnog_go
+) %>%
+  dplyr::filter(GID %in% gene_info$GID) %>%
+  dplyr::distinct()
+
+readr::write_tsv(
+  combined_go_with_source,
+  "combined_GO_with_source.tsv"
+)
+
+cat("\nCombined GO rows with source:", nrow(combined_go_with_source), "\n")
+cat("Combined genes with GO:", dplyr::n_distinct(combined_go_with_source$GID), "\n")
+cat("Combined GO terms:", dplyr::n_distinct(combined_go_with_source$GO), "\n")
+
+# -------------------------------------------------------------------------
+# 9. Load GO ontology and validate terms
+# -------------------------------------------------------------------------
+
+if (!file.exists(go_obo_file)) {
+  go_obo_url <- "https://raw.githubusercontent.com/dadrasarmin/enrichment_analysis_for_non_model_organism/refs/heads/main/go.obo"
+  download.file(
+    url = go_obo_url,
+    destfile = go_obo_file,
+    mode = "wb",
+    quiet = FALSE
+  )
+}
+
+ontology <- ontologyIndex::get_ontology(
+  file = go_obo_file,
+  propagate_relationships = "is_a",
+  extract_tags = "everything",
+  merge_equivalent_terms = TRUE
+)
+
+valid_go_terms <- names(ontology$name)
+
+invalid_go_terms <- setdiff(unique(combined_go_with_source$GO), valid_go_terms)
+
+cat("\nInvalid GO terms:", length(invalid_go_terms), "\n")
+
+if (length(invalid_go_terms) > 0) {
+  print(head(invalid_go_terms, 50))
+}
+
+combined_go_valid <- combined_go_with_source %>%
+  dplyr::filter(GO %in% valid_go_terms)
+
+term2name_GO <- combined_go_valid %>%
+  dplyr::mutate(name = ontology$name[GO]) %>%
+  dplyr::select(term = GO, name) %>%
+  dplyr::distinct() %>%
+  tidyr::drop_na() %>%
+  dplyr::filter(
+    !stringr::str_detect(
+      name,
+      stringr::regex("obsolete", ignore_case = TRUE)
+    )
+  ) %>%
+  dplyr::arrange(name)
+
+combined_go_valid <- combined_go_valid %>%
+  dplyr::filter(GO %in% term2name_GO$term) %>%
+  dplyr::distinct()
+
+term2gene_GO <- combined_go_valid %>%
+  dplyr::select(term = GO, gene = GID) %>%
+  dplyr::distinct()
+
+readr::write_tsv(term2gene_GO, "term2gene_GO.tsv")
+readr::write_tsv(term2name_GO, "term2name_GO.tsv")
+
+# -------------------------------------------------------------------------
+# 10. Build GO table for AnnotationForge
+# -------------------------------------------------------------------------
+
+go <- combined_go_valid %>%
+  dplyr::transmute(
+    GID = GID,
+    GO = GO,
+    EVIDENCE = EVIDENCE
+  ) %>%
+  dplyr::filter(GID %in% gene_info$GID) %>%
+  dplyr::distinct()
+
+stopifnot(nrow(go) > 0)
+stopifnot(all(go$GID %in% gene_info$GID))
+stopifnot(all(stringr::str_detect(go$GO, "^GO:\\d{7}$")))
+
+cat("\n--- Final combined OrgDb input summary ---\n")
+cat("gene_info rows:", nrow(gene_info), "\n")
+cat("chromosome rows:", nrow(chromosome), "\n")
+cat("GO rows:", nrow(go), "\n")
+cat("Genes with GO:", dplyr::n_distinct(go$GID), "\n")
+cat("GO terms:", dplyr::n_distinct(go$GO), "\n")
+cat(
+  "Percent genes with GO:",
+  round(100 * dplyr::n_distinct(go$GID) / dplyr::n_distinct(gene_info$GID), 2),
+  "%\n"
+)
+
+cat("\n--- GO terms per gene ---\n")
+
+go %>%
+  dplyr::count(GID, name = "n_go_terms") %>%
+  dplyr::summarise(
+    min = min(n_go_terms),
+    median = median(n_go_terms),
+    mean = mean(n_go_terms),
+    max = max(n_go_terms)
+  ) %>%
+  print()
+
+cat("\n--- Genes per GO term, top 30 ---\n")
+
+go %>%
+  dplyr::count(GO, name = "n_genes") %>%
+  dplyr::left_join(
+    term2name_GO %>%
+      dplyr::rename(GO = term),
+    by = "GO"
+  ) %>%
+  dplyr::arrange(desc(n_genes)) %>%
+  print(n = 30)
+
+# -------------------------------------------------------------------------
+# 11. Build and install OrgDb package
+# -------------------------------------------------------------------------
+
+AnnotationForge::makeOrgPackage(
+  gene_info  = gene_info,
+  chromosome = chromosome,
+  go         = go,
+  version    = pkg_version,
+  maintainer = "Andreas Bachler <Andy.Bachler@csiro.au>",
+  author     = "Andreas Bachler <Andy.Bachler@csiro.au>",
+  outputDir  = out_dir,
+  tax_id     = tax_id,
+  genus      = genus,
+  species    = species,
+  goTable    = "go"
+)
+
+install.packages(orgdb_pkg_name, repos = NULL, type = "source")
+```
+
+```{r}
+# -------------------------------------------------------------------------
+# Test installed OrgDb
+# -------------------------------------------------------------------------
+
+library(AnnotationDbi)
+
+library(org.Spistillata2.eg.db)
+
+orgdb <- org.Spistillata2.eg.db
+
+cat("\n--- OrgDb keytypes ---\n")
+print(AnnotationDbi::keytypes(orgdb))
+
+cat("\n--- OrgDb columns ---\n")
+print(AnnotationDbi::columns(orgdb))
+
+# Pull a few test genes from your built gene_info table
+test_keys <- head(gene_info$GID, 20)
+
+cat("\n--- Test select from OrgDb ---\n")
+
+orgdb_test <- AnnotationDbi::select(
+  orgdb,
+  keys = test_keys,
+  keytype = "GID",
+  columns = c("GID", "SYMBOL", "GENENAME", "GO", "EVIDENCE")
+) %>%
+  tibble::as_tibble()
+
+print(orgdb_test, n = 50)
+
+# Check whether OrgDb GO rows match the input go table
+
+org_go <- AnnotationDbi::select(
+  orgdb,
+  keys = AnnotationDbi::keys(orgdb, keytype = "GID"),
+  keytype = "GID",
+  columns = c("GID", "GO", "EVIDENCE")
+) %>%
+  dplyr::filter(!is.na(GO)) %>%
+  dplyr::distinct(GID, GO, EVIDENCE)
+
+input_go <- go %>%
+  dplyr::distinct(GID, GO, EVIDENCE)
+
+missing_from_orgdb <- input_go %>%
+  dplyr::anti_join(org_go, by = c("GID", "GO", "EVIDENCE"))
+
+extra_in_orgdb <- org_go %>%
+  dplyr::anti_join(input_go, by = c("GID", "GO", "EVIDENCE"))
+
+cat("\n--- OrgDb round-trip check ---\n")
+cat("Input GO rows:", nrow(input_go), "\n")
+cat("OrgDb GO rows:", nrow(org_go), "\n")
+cat("Input rows missing from OrgDb:", nrow(missing_from_orgdb), "\n")
+cat("Extra OrgDb rows:", nrow(extra_in_orgdb), "\n")
+
+### Generally Obsolete terms
+if (nrow(missing_from_orgdb) > 0) {
+  print(head(missing_from_orgdb, 50))
+}
+if (nrow(extra_in_orgdb) > 0) {
+  print(head(extra_in_orgdb, 50))
+}
+```
+
+### 3) Quick check with 'heatshock proteins'
+```{r}
+# -------------------------------------------------------------------------
+# Heat-shock positive-control test using the installed OrgDb package
+# -------------------------------------------------------------------------
+# This tests the actual generated org.Spistillata2.eg.db package,
+# not just the pre-build TERM2GENE and TERM2NAME tables.
+# -------------------------------------------------------------------------
+
+library(tidyverse)
+library(stringr)
+library(AnnotationDbi)
+library(clusterProfiler)
+library(org.Spistillata2.eg.db)
+
+orgdb <- org.Spistillata2.eg.db
+
+# -------------------------------------------------------------------------
+# 1. Confirm OrgDb structure
+# -------------------------------------------------------------------------
+
+cat("\n--- OrgDb keytypes ---\n")
+print(AnnotationDbi::keytypes(orgdb))
+
+cat("\n--- OrgDb columns ---\n")
+print(AnnotationDbi::columns(orgdb))
+
+stopifnot("GID" %in% AnnotationDbi::keytypes(orgdb))
+stopifnot(all(c("GID", "SYMBOL", "GENENAME", "GO", "EVIDENCE") %in% AnnotationDbi::columns(orgdb)))
+
+# -------------------------------------------------------------------------
+# 2. Get all genes from the installed OrgDb
+# -------------------------------------------------------------------------
+
+all_orgdb_genes <- AnnotationDbi::keys(
+  orgdb,
+  keytype = "GID"
+) %>%
+  unique()
+
+cat("Total genes in installed OrgDb:", length(all_orgdb_genes), "\n")
+
+# Pull gene-level annotation from the installed OrgDb.
+# This deliberately uses the installed database, not gene_info.
+
+orgdb_gene_info <- AnnotationDbi::select(
+  orgdb,
+  keys = all_orgdb_genes,
+  keytype = "GID",
+  columns = c("GID", "SYMBOL", "GENENAME")
+) %>%
+  tibble::as_tibble() %>%
+  dplyr::distinct(GID, SYMBOL, GENENAME)
+
+cat("Rows in OrgDb gene annotation table:", nrow(orgdb_gene_info), "\n")
+cat("Unique GIDs in OrgDb gene annotation table:", dplyr::n_distinct(orgdb_gene_info$GID), "\n")
+
+# -------------------------------------------------------------------------
+# 3. Pull heat-shock genes from the installed OrgDb annotation
+# -------------------------------------------------------------------------
+# This reproduces your logic, but uses GENENAME from the installed OrgDb.
+
+heat_shock_genes_list <- orgdb_gene_info %>%
+  dplyr::filter(
+    stringr::str_detect(
+      GENENAME,
+      stringr::regex("heat shock", ignore_case = TRUE)
+    )
+  ) %>%
+  dplyr::select(GID) %>%
+  dplyr::pull() %>%
+  unique()
+
+cat("Unique heat-shock genes found in installed OrgDb:", length(heat_shock_genes_list), "\n")
+
+print(heat_shock_genes_list)
+
+# -------------------------------------------------------------------------
+# 4. Check whether those genes have GO terms in the installed OrgDb
+# -------------------------------------------------------------------------
+
+heatshock_orgdb_go <- AnnotationDbi::select(
+  orgdb,
+  keys = heat_shock_genes_list,
+  keytype = "GID",
+  columns = c("GID", "SYMBOL", "GENENAME", "GO", "EVIDENCE")
+) %>%
+  tibble::as_tibble()
+
+heatshock_check <- heatshock_orgdb_go %>%
+  dplyr::group_by(GID, SYMBOL, GENENAME) %>%
+  dplyr::summarise(
+    n_go_terms = dplyr::n_distinct(GO[!is.na(GO)]),
+    has_go = n_go_terms > 0,
+    .groups = "drop"
+  ) %>%
+  dplyr::arrange(desc(n_go_terms), GID)
+
+cat("\n--- Heat-shock genes and GO coverage in installed OrgDb ---\n")
+print(heatshock_check, n = Inf)
+
+heatshock_summary <- heatshock_check %>%
+  dplyr::summarise(
+    n_heatshock_genes = dplyr::n(),
+    n_with_go = sum(has_go),
+    n_without_go = sum(!has_go),
+    pct_with_go = round(100 * mean(has_go), 2)
+  )
+
+cat("\n--- Heat-shock GO coverage summary ---\n")
+print(heatshock_summary)
+
+# Only genes with GO terms can contribute to enrichGO.
+heatshock_genes_valid <- heatshock_check %>%
+  dplyr::filter(has_go) %>%
+  dplyr::select(GID) %>%
+  dplyr::pull() %>%
+  unique()
+
+cat("Heat-shock genes usable for enrichGO:", length(heatshock_genes_valid), "\n")
+
+if (length(heatshock_genes_valid) < 3) {
+  stop("Fewer than 3 heat-shock genes have GO terms in the installed OrgDb. Enrichment is not meaningful.")
+}
+
+# -------------------------------------------------------------------------
+# 5. Run GO enrichment using the installed OrgDb
+# -------------------------------------------------------------------------
+# This is the key test:
+# clusterProfiler queries org.Spistillata2.eg.db directly.
+
+ego_heatshock_all <- clusterProfiler::enrichGO(
+  gene = heatshock_genes_valid,
+  universe = all_orgdb_genes,
+  OrgDb = orgdb,
+  keyType = "GID",
+  ont = "ALL",
+  pAdjustMethod = "BH",
+  pvalueCutoff = 1,
+  qvalueCutoff = 1,
+  minGSSize = 2,
+  maxGSSize = 500,
+  readable = FALSE,
+  pool = FALSE
+)
+
+heatshock_results_all <- as.data.frame(ego_heatshock_all) %>%
+  tibble::as_tibble()
+
+cat("\n--- enrichGO results using installed OrgDb, ontology = ALL ---\n")
+cat("GO terms returned:", nrow(heatshock_results_all), "\n")
+
+heatshock_results_all %>%
+  dplyr::select(
+    ONTOLOGY,
+    ID,
+    Description,
+    GeneRatio,
+    BgRatio,
+    pvalue,
+    p.adjust,
+    qvalue,
+    geneID,
+    Count
+  ) %>%
+  dplyr::arrange(p.adjust, pvalue) %>%
+  print(n = 30)
+
+# -------------------------------------------------------------------------
+# 6. Inspect expected heat/stress/chaperone-related terms
+# -------------------------------------------------------------------------
+
+cat("\n--- Expected heat/stress/chaperone-like terms from installed OrgDb enrichGO ---\n")
+
+heatshock_expected_terms_all <- heatshock_results_all %>%
+  dplyr::filter(
+    stringr::str_detect(
+      Description,
+      stringr::regex(
+        "heat|temperature|stress|chaperone|protein folding|unfolded|HSP",
+        ignore_case = TRUE
+      )
+    )
+  ) %>%
+  dplyr::arrange(p.adjust, pvalue)
+
+print(heatshock_expected_terms_all, n = Inf)
+
+# -------------------------------------------------------------------------
+# 7. Run ontology-specific tests
+# -------------------------------------------------------------------------
+# BP is usually the most biologically interpretable.
+# MF may return chaperone binding / unfolded protein binding.
+# CC may return cellular-component terms.
+
+ego_heatshock_bp <- clusterProfiler::enrichGO(
+  gene = heatshock_genes_valid,
+  universe = all_orgdb_genes,
+  OrgDb = orgdb,
+  keyType = "GID",
+  ont = "BP",
+  pAdjustMethod = "BH",
+  pvalueCutoff = 1,
+  qvalueCutoff = 1,
+  minGSSize = 2,
+  maxGSSize = 500,
+  readable = FALSE
+)
+
+ego_heatshock_mf <- clusterProfiler::enrichGO(
+  gene = heatshock_genes_valid,
+  universe = all_orgdb_genes,
+  OrgDb = orgdb,
+  keyType = "GID",
+  ont = "MF",
+  pAdjustMethod = "BH",
+  pvalueCutoff = 1,
+  qvalueCutoff = 1,
+  minGSSize = 2,
+  maxGSSize = 500,
+  readable = FALSE
+)
+
+ego_heatshock_cc <- clusterProfiler::enrichGO(
+  gene = heatshock_genes_valid,
+  universe = all_orgdb_genes,
+  OrgDb = orgdb,
+  keyType = "GID",
+  ont = "CC",
+  pAdjustMethod = "BH",
+  pvalueCutoff = 1,
+  qvalueCutoff = 1,
+  minGSSize = 2,
+  maxGSSize = 500,
+  readable = FALSE
+)
+
+heatshock_bp <- as.data.frame(ego_heatshock_bp) %>% tibble::as_tibble()
+heatshock_mf <- as.data.frame(ego_heatshock_mf) %>% tibble::as_tibble()
+heatshock_cc <- as.data.frame(ego_heatshock_cc) %>% tibble::as_tibble()
+
+cat("\n--- BP top terms ---\n")
+heatshock_bp %>%
+  dplyr::select(
+    ID,
+    Description,
+    GeneRatio,
+    BgRatio,
+    pvalue,
+    p.adjust,
+    qvalue,
+    geneID,
+    Count
+  ) %>%
+  dplyr::arrange(p.adjust, pvalue) %>%
+  print(n = 20)
+
+cat("\n--- MF top terms ---\n")
+heatshock_mf %>%
+  dplyr::select(
+    ID,
+    Description,
+    GeneRatio,
+    BgRatio,
+    pvalue,
+    p.adjust,
+    qvalue,
+    geneID,
+    Count
+  ) %>%
+  dplyr::arrange(p.adjust, pvalue) %>%
+  print(n = 20)
+
+cat("\n--- CC top terms ---\n")
+heatshock_cc %>%
+  dplyr::select(
+    ID,
+    Description,
+    GeneRatio,
+    BgRatio,
+    pvalue,
+    p.adjust,
+    qvalue,
+    geneID,
+    Count
+  ) %>%
+  dplyr::arrange(p.adjust, pvalue) %>%
+  print(n = 20)
+
+# -------------------------------------------------------------------------
+# 8. Show which heat-shock genes drive the top installed-OrgDb terms
+# -------------------------------------------------------------------------
+
+if (nrow(heatshock_results_all) > 0) {
+
+  top_heatshock_gene_hits <- heatshock_results_all %>%
+    dplyr::arrange(p.adjust, pvalue) %>%
+    dplyr::slice_head(n = 10) %>%
+    dplyr::select(ONTOLOGY, ID, Description, geneID) %>%
+    tidyr::separate_rows(geneID, sep = "/") %>%
+    dplyr::rename(GID = geneID) %>%
+    dplyr::left_join(
+      orgdb_gene_info %>%
+        dplyr::select(GID, SYMBOL, GENENAME) %>%
+        dplyr::distinct(),
+      by = "GID"
+    )
+
+  cat("\n--- Heat-shock genes contributing to top installed-OrgDb enriched terms ---\n")
+  print(top_heatshock_gene_hits, n = Inf)
+}
+
+# -------------------------------------------------------------------------
+# 9. Optional lightweight negative control using installed OrgDb
+# -------------------------------------------------------------------------
+# This runs only one random gene set of the same size as the heat-shock set.
+# It is just a quick sanity check, not a formal permutation test.
+
+set.seed(123)
+
+random_genes <- sample(
+  x = all_orgdb_genes,
+  size = length(heatshock_genes_valid),
+  replace = FALSE
+)
+
+ego_random_all <- clusterProfiler::enrichGO(
+  gene = random_genes,
+  universe = all_orgdb_genes,
+  OrgDb = orgdb,
+  keyType = "GID",
+  ont = "ALL",
+  pAdjustMethod = "BH",
+  pvalueCutoff = 1,
+  qvalueCutoff = 1,
+  minGSSize = 2,
+  maxGSSize = 500,
+  readable = FALSE,
+  pool = FALSE
+)
+
+random_results_all <- as.data.frame(ego_random_all) %>%
+  tibble::as_tibble()
+
+cat("\n--- One random gene-set control using installed OrgDb ---\n")
+
+if (nrow(random_results_all) > 0) {
+  random_results_all %>%
+    dplyr::select(
+      ONTOLOGY,
+      ID,
+      Description,
+      GeneRatio,
+      BgRatio,
+      pvalue,
+      p.adjust,
+      qvalue,
+      geneID,
+      Count
+    ) %>%
+    dplyr::arrange(p.adjust, pvalue) %>%
+    print(n = 20)
+} else {
+  cat("No enriched GO terms returned for the random gene set.\n")
+}
+
+# -------------------------------------------------------------------------
+# 10. Compare heat-shock result to the one random control
+# -------------------------------------------------------------------------
+
+heatshock_min_padj <- if (nrow(heatshock_results_all) > 0) {
+  min(heatshock_results_all$p.adjust, na.rm = TRUE)
+} else {
+  NA_real_
+}
+
+random_min_padj <- if (nrow(random_results_all) > 0) {
+  min(random_results_all$p.adjust, na.rm = TRUE)
+} else {
+  NA_real_
+}
+
+quick_control_summary <- tibble::tibble(
+  test = "installed_OrgDb_heat_shock_vs_one_random_set",
+  n_heatshock_genes_used = length(heatshock_genes_valid),
+  heatshock_min_padj = heatshock_min_padj,
+  random_min_padj = random_min_padj,
+  heatshock_stronger_than_random = heatshock_min_padj < random_min_padj
+)
+
+cat("\n--- Quick random-control summary ---\n")
+print(quick_control_summary)
+
+# -------------------------------------------------------------------------
+# 11. Interpretation guide
+# -------------------------------------------------------------------------
+
+cat("\n--- Interpretation guide ---\n")
+cat("This test uses clusterProfiler::enrichGO() against the installed org.Spistillata2.eg.db package.\n")
+cat("Good sign: heat-shock genes enrich heat, stress, chaperone, protein folding, or unfolded-protein terms.\n")
+cat("Good sign: the heat-shock set looks more biologically coherent than one random gene set of the same size.\n")
+cat("Caution: genes were selected by GENENAME containing 'heat shock', so this is a database sanity check, not an independent biological discovery.\n")
+cat("Caution: genes without GO terms are still valid OrgDb genes, but they cannot contribute to GO enrichment.\n")
+```
+
+### 4) Read in functions needed to run GO analyses
+
+```{r}
+# Read in gene coordinates from GFF
+read_gene_coords <- function(gff_path) {
+  gr <- rtracklayer::import(gff_path)
+  df <- as_tibble(gr)
+  
+  gene_coords <- df %>%
+    # keep only gene features, or rows with ID that look like "gene-..."
+    filter(tolower(type) == "gene" | grepl("^gene-", ID)) %>%
+    transmute(
+      # remove the "gene-" prefix if present
+      gene_id  = sub("^gene-", "", dplyr::coalesce(ID, Name, gene)),
+      scaffold = as.character(seqnames),
+      start    = as.integer(start),
+      end      = as.integer(end),
+      strand   = as.character(strand)
+    ) %>%
+    filter(!is.na(gene_id), !is.na(scaffold), !is.na(start), !is.na(end)) %>%
+    distinct(gene_id, .keep_all = TRUE)
+  
+  if (nrow(gene_coords) == 0) {
+    stop("No gene coordinates found. Check your GFF 'type' and attribute columns.")
+  }
+  
+  gene_coords
+}
+
+# Read in window coordinates from CSV
+read_windows <- function(windows_csv) {
+  readr::read_csv(
+    windows_csv,
+    col_types = cols(
+      window   = col_character(),
+      scaffold = col_character(),
+      start    = col_double(),
+      end      = col_double()
+    )
+  ) %>%
+    mutate(
+      start = as.integer(start),
+      end   = as.integer(end)
+    ) %>%
+    distinct(window, scaffold, start, end)
+}
+```
+
+### 5) Re-run enrichment with GOs rolled at specific GO level
+```{r}
+# Load raw mapping 
+term2gene_raw <- read_tsv("term2gene_GO.tsv",
+                          col_names = c("GO","GID"),
+                          skip = 1,
+                          show_col_types = FALSE) %>%
+  mutate(GID = sub("-P[0-9]+$", "", GID))
+
+# GO DAG + roots
+go_obo <- get_ontology("go.obo",
+                       propagate_relationships = "is_a",
+                       extract_tags = "everything",
+                       merge_equivalent_terms = TRUE)
+
+roots <- c(BP = "GO:0008150", MF = "GO:0003674", CC = "GO:0005575")
+
+# Helpers: namespace, depths, rollup
+get_namespace <- function(go_id, ontology, roots) {
+  anc <- ontology$ancestors[[go_id]]
+  match <- roots[roots %in% anc]
+  if (length(match) == 0) return(NA)
+  if (length(match) > 1) warning(paste("Multiple roots for", go_id))
+  names(match)[1]
+}
+
+get_all_depths <- function(go_id, ontology, root, depth = 0) {
+  if (go_id == root) return(depth)
+  if (length(ontology$parents[[go_id]]) == 0) return(Inf)
+  unlist(lapply(ontology$parents[[go_id]], function(p) {
+    get_all_depths(p, ontology, root, depth + 1)
+  }))
+}
+
+get_term_depths <- function(go_id, ontology, roots) {
+  ns <- get_namespace(go_id, ontology, roots)
+  if (is.na(ns)) return(list(Namespace = NA, Depth_min = NA, Depth_max = NA))
+  root <- roots[[ns]]
+  depths <- get_all_depths(go_id, ontology, root)
+  list(Namespace = ns,
+       Depth_min = min(depths, na.rm = TRUE),
+       Depth_max = max(depths, na.rm = TRUE))
+}
+
+go_lookup <- map_dfr(unique(term2gene_raw$GO), function(go) {
+  out <- get_term_depths(go, go_obo, roots)
+  tibble(GO = go,
+         Namespace = out$Namespace,
+         Depth_min = out$Depth_min,
+         Depth_max = out$Depth_max)
+})
+
+term2gene_with_levels <- term2gene_raw %>%
+  left_join(go_lookup, by = "GO")
+
+get_anc_at_depth <- function(go_id, ontology, root, target_depth, current_depth = 0) {
+  if (go_id == root && current_depth == target_depth) return(go_id)
+  if (current_depth == target_depth) return(go_id)
+  if (length(ontology$parents[[go_id]]) == 0) return(NA)
+  unlist(lapply(ontology$parents[[go_id]], function(p) {
+    get_anc_at_depth(p, ontology, root, target_depth, current_depth + 1)
+  }))
+}
+
+rollup_to_level <- function(df, ontology, roots, target_depth) {
+  df %>%
+    rowwise() %>%
+    mutate(
+      Rolled_GO = if (Depth_min <= target_depth) {
+        GO
+      } else {
+        root <- roots[[Namespace]]
+        paste(unique(get_anc_at_depth(GO, ontology, root, target_depth)), collapse = ";")
+      }
+    ) %>%
+    ungroup() %>%
+    separate_rows(Rolled_GO, sep = ";") %>%
+    filter(!is.na(Rolled_GO) & Rolled_GO != "")
+}
+
+# Choose your target level once (adjust as you like) 
+target_depth <- 6
+rolled <- rollup_to_level(term2gene_with_levels, go_obo, roots, target_depth)
+
+term2gene_rolled <- rolled %>%
+  dplyr::select(GO = Rolled_GO, GID) %>%
+  distinct()
+
+# Function for rolled-level enrichment
+analyze_population_rolled <- function(file, pop_name,
+                                      gene_coords,
+                                      windows_tbl,
+                                      term2gene_rolled,
+                                      top_fraction = 0.05,
+                                      node_size = 1,
+                                      ontology = "BP",
+                                      orgdb = "org.Spistillata.eg.db",
+                                      semdata) {
+  message("Processing ROLLED: ", pop_name)
+  
+  wza_out <- read.csv(file)
+  
+  t2g <- term2gene_rolled %>% distinct(GO, GID)
+  gene2GO <- split(t2g$GO, t2g$GID)
+  all_genes <- sort(unique(t2g$GID))
+  
+  # filter to the top `top_fraction` of windows by Z_pVal (per population)
+  pval_cutoff <- quantile(wza_out$Z_pVal, probs = top_fraction, na.rm = TRUE)
+  windows_within_threshold <- wza_out %>% filter(Z_pVal <= pval_cutoff)
+  coordinates_of_windows <- windows_tbl %>% filter(window %in% windows_within_threshold$gene)
+  
+  if (nrow(coordinates_of_windows) == 0) {
+    return(list(population = pop_name, allRes = tibble(), reducedTerms = NULL,
+                simMatrix = NULL, pval_cutoff = pval_cutoff))
+  }
+  
+  # GRanges
+  gr_windows <- makeGRangesFromDataFrame(coordinates_of_windows,
+                                         seqnames.field = "scaffold",
+                                         start.field = "start",
+                                         end.field = "end",
+                                         keep.extra.columns = TRUE)
+  
+  gr_genes <- makeGRangesFromDataFrame(gene_coords,
+                                       seqnames.field = "scaffold",
+                                       start.field = "start",
+                                       end.field = "end",
+                                       keep.extra.columns = TRUE)
+  
+  # harmonize seqlevels
+  common_seqlevels <- intersect(seqlevels(gr_windows), seqlevels(gr_genes))
+  gr_windows <- keepSeqlevels(gr_windows, common_seqlevels, pruning.mode = "coarse")
+  gr_genes   <- keepSeqlevels(gr_genes, common_seqlevels, pruning.mode = "coarse")
+  
+  hits <- findOverlaps(gr_windows, gr_genes)
+
+  overlap_tbl <- tibble(
+    window  = mcols(gr_windows)$window[queryHits(hits)],
+    gene_id = mcols(gr_genes)$gene_id[subjectHits(hits)])
+  
+  all_sig_genes <- unique(overlap_tbl$gene_id)
+  
+  geneList <- factor(as.integer(all_genes %in% all_sig_genes))
+  names(geneList) <- all_genes
+  
+  if (sum(geneList == 1) == 0) {
+    return(list(population = pop_name, allRes = tibble(), reducedTerms = NULL,
+                simMatrix = NULL, pval_cutoff = pval_cutoff))
+  }
+  
+  GOdata <- new("topGOdata",
+                ontology = ontology,
+                allGenes = geneList,
+                annot = annFUN.gene2GO,
+                gene2GO = gene2GO,
+                nodeSize = node_size)
+  
+  res_classic_Fisher <- runTest(GOdata, algorithm = "classic", statistic = "fisher")
+  res_elim_Fisher    <- runTest(GOdata, algorithm = "elim", statistic = "fisher")
+  res_weight_Fisher  <- runTest(GOdata, algorithm = "weight01", statistic = "fisher")
+  
+  allRes <- GenTable(GOdata,
+                     classic_Fisher = res_classic_Fisher,
+                     elim_Fisher    = res_elim_Fisher,
+                     weight_Fisher  = res_weight_Fisher,
+                     orderBy        = "classic_Fisher",
+                     topNodes       = 500) %>%
+    mutate(across(c(classic_Fisher, elim_Fisher, weight_Fisher), as.numeric)) %>%
+    filter(classic_Fisher < 0.05 | elim_Fisher < 0.05 | weight_Fisher < 0.05)
+  
+  if (nrow(allRes) == 0) {
+    return(list(population = pop_name, allRes = tibble(), reducedTerms = NULL,
+                simMatrix = NULL, pval_cutoff = pval_cutoff))
+  }
+  
+  scores <- -log10(allRes$elim_Fisher)
+  names(scores) <- allRes$GO.ID
+  
+  simMatrix <- calculateSimMatrix(allRes$GO.ID,
+                                  orgdb = orgdb,
+                                  ont = ontology,
+                                  method = "Rel",
+                                  semdata = semdata)
+  
+  reducedTerms <- reduceSimMatrix(simMatrix, scores,
+                                  threshold = 0.7,
+                                  orgdb = orgdb,
+                                  keytype = "GID")
+  
+  return(list(population = pop_name, allRes = allRes, reducedTerms = reducedTerms,
+              simMatrix = simMatrix, pval_cutoff = pval_cutoff))
+}
+
+# Run rolled-level enrichment
+files <- list(
+  Global  = "wza_output_Global.csv",
+  Moore   = "wza_output_Moore.csv",
+  Lizard  = "wza_output_Lizard.csv",
+  Heron   = "wza_output_Heron.csv",
+  Pelorus = "wza_output_Pelorus.csv",
+  Central = "wza_output_CentralOffshore.csv")
+
+windows_tbl <- read.csv("all_windows_coords.csv")
+gene_coords <- read_gene_coords(gff_file)
+
+# Run rolled-level enrichment
+semdata <- godata(orgdb, keytype = "GID", ont = "BP")
+
+rolled_outputs <- lapply(names(files), function(pop) {
+  analyze_population_rolled(file = files[[pop]],
+                            pop_name = pop,
+                            gene_coords = gene_coords,
+                            windows_tbl = windows_tbl,
+                            term2gene_rolled = term2gene_rolled,
+                            ontology = "BP",
+                            orgdb = orgdb,
+                            semdata = semdata)
+})
+
+names(rolled_outputs) <- names(files)
+saveRDS(rolled_outputs, "rolled_outputs_level6.rds")
+```
+
+#### # 3E) Plot results of GO enrichment at specific level
+```{r}
+# Comparing across populations
+library(UpSetR)
+
+all_summaries <- bind_rows(lapply(names(rolled_outputs), function(pop) {
+  df <- rolled_outputs[[pop]]$reducedTerms
+  if (!is.null(df)) {
+    rownames(df) <- NULL   # remove row names
+    df$Pop <- pop
+    df
+  }
+}))
+
+all_summaries <- all_summaries %>% filter(!is.na(parent))  # guard in case some reducedTerms were NULL
+
+all_summaries_more_than_1 <- all_summaries %>%
+  group_by(parent) %>%
+  mutate(distinct_pops = n_distinct(Pop)) %>%
+  arrange(distinct_pops) %>%
+  filter(distinct_pops >= 2)
+
+parent_pop <- all_summaries %>%
+  dplyr::select(parent, Pop) %>%
+  distinct()
+
+parent_matrix <- parent_pop %>%
+  mutate(value = 1) %>%
+  pivot_wider(names_from = Pop, values_from = value, values_fill = 0)
+
+upset(as.data.frame(parent_matrix),
+      sets = c("Heron", "Pelorus", "Central", "Moore", "Lizard", "Global"),
+      nintersects = NA,
+      keep.order = TRUE,
+      order.by = "freq")
+
+# Strongest signals within each population - barplots
+
+top_terms_per_pop <- bind_rows(lapply(names(rolled_outputs), function(pop) {
+  df <- rolled_outputs[[pop]]$allRes
+  if (!is.null(df) && nrow(df) > 0) {
+    df <- df %>%
+      arrange(elim_Fisher) %>%
+      slice_head(n = 10) %>%
+      mutate(Pop = pop)
+    df
+  }
+}))
+
+top_terms_per_pop <- top_terms_per_pop %>%
+  mutate(Term = fct_reorder(Term, -elim_Fisher))
+
+ordered_pops <- c("Global", "Lizard", "Moore", "Central", "Pelorus", "Heron")
+pop_colors <- c("grey40", "#B05102", "#F39237", "#1F7D1E", "#F2C738", "#5CBED1")
+
+ggplot(top_terms_per_pop, aes(x = Term, y = -log10(elim_Fisher), fill = Pop)) +
+  geom_col(show.legend = FALSE) +
+  facet_wrap(~Pop, scales = "free_y") +
+  scale_fill_manual(values = setNames(pop_colors, ordered_pops)) +
+  coord_flip() +
+  ylab("-log10(elim_Fisher)") +
+  xlab("GO term") +
+  theme_minimal(base_size = 14) +
+  theme(
+    strip.text = element_text(face = "bold"),
+    axis.text.y = element_text(size = 9))
+
+# Strongest signals within each population - heatmap
+
+top_terms_per_pop <- bind_rows(lapply(names(rolled_outputs), function(pop) {
+  df <- rolled_outputs[[pop]]$allRes
+  if (!is.null(df) && nrow(df) > 0) {
+    df %>%
+      arrange(elim_Fisher) %>%
+      slice_head(n = 5) %>%
+      mutate(Pop = pop)
+  }
+}))
+
+terms_of_interest <- unique(top_terms_per_pop$Term)
+
+heatmap_df <- lapply(names(rolled_outputs), function(pop) {
+  df <- rolled_outputs[[pop]]$allRes
+  if (!is.null(df) && nrow(df) > 0) {
+    df %>%
+      filter(Term %in% terms_of_interest) %>%
+      dplyr::select(Term, elim_Fisher) %>%
+      mutate(Pop = pop)
+  }
+}) %>%
+  bind_rows() %>%
+  tidyr::complete(Term = terms_of_interest, Pop = ordered_pops) %>%
+  mutate(logp = -log10(elim_Fisher))
+
+heatmap_wide <- heatmap_df %>%
+  dplyr::select(Pop, Term, logp) %>%
+  pivot_wider(names_from = Pop, values_from = logp, values_fill = 0)  # fill missing with 0
+
+term_order <- heatmap_wide %>%
+  mutate(sig_pattern = paste0(ifelse(Heron>0,1,0),
+                              ifelse(Pelorus>0,1,0),
+                              ifelse(Central>0,1,0),
+                              ifelse(Moore>0,1,0),
+                              ifelse(Lizard>0,1,0),
+                              ifelse(Global>0,1,0))) %>%
+  arrange(sig_pattern, desc(Heron + Pelorus + Central + Moore + Lizard + Global)) %>%
+  pull(Term)
+
+heatmap_long <- heatmap_df %>%
+  mutate(Term = factor(Term, levels = rev(term_order)),
+         Pop = factor(Pop, levels = ordered_pops))
+
+ggplot(heatmap_long, aes(x = Pop, y = Term, fill = logp)) +
+  geom_tile(color = "white") +
+  scale_fill_gradientn(colours = c("steelblue", "darkred"),
+                       na.value = "steelblue") +
+  theme_minimal(base_size = 14) +
+  theme(
+    axis.text.y = element_text(size = 8),
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    panel.grid = element_blank()
+  )
+```
