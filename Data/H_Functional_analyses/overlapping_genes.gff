@@ -1,0 +1,15 @@
+JAUZEC010000102.1	Gnomon	gene	9481	14844	.	+	.	ID=gene-egapxtmp_028464;Name=egapxtmp_028464;gbkey=Gene;gene_biotype=lncRNA;locus_tag=egapxtmp_028464
+JAUZEC010001083.1	Gnomon	gene	1012085	1017511	.	+	.	ID=gene-egapxtmp_005275;Name=egapxtmp_005275;description=peroxidasin homolog;gbkey=Gene;gene_biotype=protein_coding;locus_tag=egapxtmp_005275
+JAUZEC010001110.1	Gnomon	gene	2532829	2562400	.	+	.	ID=gene-egapxtmp_012096;Name=egapxtmp_012096;description=NF-X1-type zinc finger protein NFXL1-like;gbkey=Gene;gene_biotype=protein_coding;locus_tag=egapxtmp_012096
+JAUZEC010001110.1	Gnomon	gene	2537770	2553689	.	-	.	ID=gene-egapxtmp_010025;Name=egapxtmp_010025;gbkey=Gene;gene_biotype=protein_coding;locus_tag=egapxtmp_010025
+JAUZEC010001113.1	Gnomon	gene	34627	42527	.	-	.	ID=gene-egapxtmp_012844;Name=egapxtmp_012844;gbkey=Gene;gene_biotype=protein_coding;locus_tag=egapxtmp_012844
+JAUZEC010001548.1	Gnomon	gene	1041054	1041831	.	+	.	ID=gene-egapxtmp_004370;Name=egapxtmp_004370;gbkey=Gene;gene_biotype=protein_coding;locus_tag=egapxtmp_004370
+JAUZEC010001548.1	Gnomon	gene	1055882	1057214	.	+	.	ID=gene-egapxtmp_004577;Name=egapxtmp_004577;gbkey=Gene;gene_biotype=protein_coding;locus_tag=egapxtmp_004577
+JAUZEC010001548.1	Gnomon	gene	1058240	1061917	.	+	.	ID=gene-egapxtmp_004371;Name=egapxtmp_004371;gbkey=Gene;gene_biotype=protein_coding;locus_tag=egapxtmp_004371
+JAUZEC010003464.1	Gnomon	gene	472432	476363	.	-	.	ID=gene-egapxtmp_020407;Name=egapxtmp_020407;gbkey=Gene;gene_biotype=protein_coding;locus_tag=egapxtmp_020407
+JAUZEC010003578.1	Gnomon	gene	425728	435378	.	+	.	ID=gene-egapxtmp_022060;Name=egapxtmp_022060;description=basement membrane-specific heparan sulfate proteoglycan core protein-like;gbkey=Gene;gene_biotype=protein_coding;locus_tag=egapxtmp_022060
+JAUZEC010000380.1	Gnomon	gene	109071	112518	.	-	.	ID=gene-egapxtmp_024018;Name=egapxtmp_024018;gbkey=Gene;gene_biotype=protein_coding;locus_tag=egapxtmp_024018
+JAUZEC010000380.1	Gnomon	gene	113578	117679	.	-	.	ID=gene-egapxtmp_024017;Name=egapxtmp_024017;gbkey=Gene;gene_biotype=protein_coding;locus_tag=egapxtmp_024017
+JAUZEC010000071.1	Gnomon	gene	79575	81103	.	-	.	ID=gene-egapxtmp_000003;Name=egapxtmp_000003;description=leukocyte elastase inhibitor-like;gbkey=Gene;gene_biotype=protein_coding;locus_tag=egapxtmp_000003
+JAUZEC010000071.1	Gnomon	gene	81360	87755	.	+	.	ID=gene-egapxtmp_030525;Name=egapxtmp_030525;gbkey=Gene;gene_biotype=lncRNA;locus_tag=egapxtmp_030525
+JAUZEC010000071.1	Gnomon	gene	88470	102595	.	-	.	ID=gene-egapxtmp_000004;Name=egapxtmp_000004;description=stimulated by retinoic acid gene 6 protein-like;gbkey=Gene;gene_biotype=protein_coding;locus_tag=egapxtmp_000004
