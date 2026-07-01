@@ -3,6 +3,6 @@
 BASE=$(basename $1 .fasta)
 module load samtools
 samtools faidx $1
-awk -v OFS='\t' '{print $1,0,$2}' ${BASE}.fasta.fai > ${BASE}.bed
+awk -v OFS='\t' '{print $1,0,$2}' ${BASE}.fai > ${BASE}.bed
 
 #usage: fasta2bed.sh assembly.fa
